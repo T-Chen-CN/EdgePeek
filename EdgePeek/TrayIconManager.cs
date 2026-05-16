@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows.Forms;
+using EdgePeek.Localization;
 
 namespace EdgePeek;
 
@@ -33,13 +34,13 @@ public sealed class TrayIconManager : IDisposable
 
     public void RefreshMenu()
     {
-        var zh = string.Equals(_settings.Language, "zh-CN", StringComparison.OrdinalIgnoreCase);
+        var zh = Strings.IsChinese(_settings.Language);
         var menu = new ContextMenuStrip();
-        menu.Items.Add(zh ? "显示" : "Show", null, (_, _) => _show());
-        menu.Items.Add(zh ? "隐藏" : "Hide", null, (_, _) => _hide());
-        menu.Items.Add(zh ? "设置" : "Settings", null, (_, _) => _settingsAction());
+        menu.Items.Add(Strings.Show(zh), null, (_, _) => _show());
+        menu.Items.Add(Strings.Hide(zh), null, (_, _) => _hide());
+        menu.Items.Add(Strings.SettingsTitle(zh), null, (_, _) => _settingsAction());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add(zh ? "退出" : "Exit", null, (_, _) => _exit());
+        menu.Items.Add(Strings.Exit(zh), null, (_, _) => _exit());
 
         var oldMenu = _notifyIcon.ContextMenuStrip;
         _notifyIcon.ContextMenuStrip = menu;

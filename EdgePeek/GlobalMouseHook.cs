@@ -28,6 +28,10 @@ public sealed class GlobalMouseHook : IDisposable
         }
 
         _hookId = SetWindowsHookEx(WhMouseLl, _proc, IntPtr.Zero, 0);
+        if (_hookId == IntPtr.Zero)
+        {
+            AppLog.Write($"Global mouse hook registration failed. error={Marshal.GetLastWin32Error()}");
+        }
     }
 
     public void Stop()

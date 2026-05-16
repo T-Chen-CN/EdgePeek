@@ -1,14 +1,12 @@
 using System.ComponentModel;
-using System.IO;
-using System.Net.Http;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Microsoft.Web.WebView2.Core;
+using EdgePeek.Localization;
+using EdgePeek.Services;
 using Forms = System.Windows.Forms;
 
 namespace EdgePeek;
@@ -27,12 +25,10 @@ public partial class MainWindow : Window
     private readonly HotKeyManager _hotKeyManager;
     private readonly GlobalMouseHook _globalMouseHook;
     private readonly NativeWindowAnimator _windowAnimator;
+    private readonly WebViewEnvironmentFactory _webViewEnvironmentFactory = new();
+    private readonly FaviconService _faviconService = new();
     private readonly DispatcherTimer _hideDelayTimer;
     private readonly DispatcherTimer _autoHideCheckTimer;
-    private static readonly HttpClient FaviconHttpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(4)
-    };
     private bool _wasPrimaryMouseDownOutside;
     private bool _isShown;
     private bool _isReallyClosing;
@@ -47,7 +43,6 @@ public partial class MainWindow : Window
     private BrowserTab? _activeTab;
     private SettingsPage? _settingsPage;
     private Action? _pendingSettingsAction;
-    private Task<CoreWebView2Environment>? _webViewEnvironmentTask;
 
     private Microsoft.Web.WebView2.Wpf.WebView2? ActiveBrowser => _activeTab?.Browser;
 
@@ -161,7 +156,7 @@ public partial class MainWindow : Window
         {
             if (ActiveBrowser?.CoreWebView2 is null && ActiveBrowser is not null)
             {
-                await ActiveBrowser.EnsureCoreWebView2Async(await GetWebViewEnvironmentAsync());
+                await ActiveBrowser.EnsureCoreWebView2Async(await _webViewEnvironmentFactory.GetAsync());
             }
         }
         catch (Exception ex)
@@ -278,11 +273,11 @@ public partial class MainWindow : Window
     private void ShowUnsavedSettingsPrompt(Action? afterClose)
     {
         _pendingSettingsAction = afterClose;
-        var zh = _settingsPage?.IsChineseLanguage() == true || string.Equals(_settings.Language, "zh-CN", StringComparison.OrdinalIgnoreCase);
-        UnsavedSettingsText.Text = zh ? "设置有未保存的更改。" : "Settings have unsaved changes.";
-        UnsavedCancelButton.Content = zh ? "取消" : "Cancel";
-        UnsavedDiscardButton.Content = zh ? "放弃" : "Discard";
-        UnsavedSaveButton.Content = zh ? "保存" : "Save";
+        var zh = _settingsPage?.IsChineseLanguage() == true || Strings.IsChinese(_settings.Language);
+        UnsavedSettingsText.Text = Strings.UnsavedSettings(zh);
+        UnsavedCancelButton.Content = Strings.Cancel(zh);
+        UnsavedDiscardButton.Content = Strings.Discard(zh);
+        UnsavedSaveButton.Content = Strings.Save(zh);
         UnsavedSettingsPrompt.Visibility = Visibility.Visible;
     }
 
@@ -542,7 +537,7 @@ public partial class MainWindow : Window
 
         for (var index = 0; index < urls.Count; index++)
         {
-            _ = AddTabAsync(urls[index], activate: index == activeIndex);
+            AddTabAsync(urls[index], activate: index == activeIndex).Forget("Restore tab");
         }
     }
 
@@ -561,7 +556,7 @@ public partial class MainWindow : Window
 
         try
         {
-            await tab.Browser.EnsureCoreWebView2Async(await GetWebViewEnvironmentAsync());
+            await tab.Browser.EnsureCoreWebView2Async(await _webViewEnvironmentFactory.GetAsync());
             tab.Browser.Source = new Uri(normalizedUrl);
         }
         catch (Exception ex)
@@ -577,23 +572,6 @@ public partial class MainWindow : Window
 
         SaveTabs();
         return tab;
-    }
-
-    private Task<CoreWebView2Environment> GetWebViewEnvironmentAsync()
-    {
-        _webViewEnvironmentTask ??= CreateWebViewEnvironmentAsync();
-        return _webViewEnvironmentTask;
-    }
-
-    private static Task<CoreWebView2Environment> CreateWebViewEnvironmentAsync()
-    {
-        var options = new CoreWebView2EnvironmentOptions
-        {
-            AdditionalBrowserArguments = "--enable-features=OverlayScrollbar,FluentOverlayScrollbar",
-            ScrollBarStyle = CoreWebView2ScrollbarStyle.FluentOverlay
-        };
-
-        return CoreWebView2Environment.CreateAsync(browserExecutableFolder: null, userDataFolder: null, options);
     }
 
     private void ConfigureTab(BrowserTab tab)
@@ -628,7 +606,7 @@ public partial class MainWindow : Window
             tab.Browser.CoreWebView2.NewWindowRequested += (_, request) =>
             {
                 request.Handled = true;
-                _ = AddTabAsync(request.Uri, activate: true);
+                AddTabAsync(request.Uri, activate: true).Forget("Open requested new window");
             };
 
             tab.Browser.CoreWebView2.WebMessageReceived += (_, messageArgs) =>
@@ -636,7 +614,9 @@ public partial class MainWindow : Window
                 HandleBrowserWebMessage(messageArgs.TryGetWebMessageAsString());
             };
 
-            _ = tab.Browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(GetBrowserEnhancementScript());
+            tab.Browser.CoreWebView2
+                .AddScriptToExecuteOnDocumentCreatedAsync(BrowserEnhancementScriptProvider.Script)
+                .Forget("Register browser enhancement script");
             InjectBrowserEnhancementScript(tab);
 
             tab.Browser.CoreWebView2.DocumentTitleChanged += (_, _) =>
@@ -649,7 +629,7 @@ public partial class MainWindow : Window
                 }
             };
 
-            tab.Browser.CoreWebView2.FaviconChanged += async (_, _) => await UpdateFaviconAsync(tab);
+            tab.Browser.CoreWebView2.FaviconChanged += (_, _) => UpdateFaviconAsync(tab).Forget("Update favicon");
         };
     }
 
@@ -660,7 +640,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        _ = tab.Browser.CoreWebView2.ExecuteScriptAsync(GetBrowserEnhancementScript());
+        tab.Browser.CoreWebView2
+            .ExecuteScriptAsync(BrowserEnhancementScriptProvider.Script)
+            .Forget("Inject browser enhancement script");
     }
 
     private void HandleBrowserWebMessage(string message)
@@ -678,136 +660,6 @@ public partial class MainWindow : Window
         {
             SetTopBarVisible(true);
         }
-    }
-
-    private static string GetBrowserEnhancementScript()
-    {
-        return """
-            (() => {
-                if (window.__edgePeekScrollHook) {
-                    return;
-                }
-                window.__edgePeekScrollHook = true;
-
-                let lastPostAt = 0;
-                let touchY = null;
-                let scrollbarTimer = 0;
-
-                const installScrollbarStyle = () => {
-                    if (document.getElementById('__edgepeek_scrollbar_style')) {
-                        return;
-                    }
-
-                    const style = document.createElement('style');
-                    style.id = '__edgepeek_scrollbar_style';
-                    style.textContent = `
-                        :root, * {
-                            scrollbar-width: thin !important;
-                            scrollbar-color: transparent transparent !important;
-                        }
-
-                        :root.edgepeek-scrollbar-active,
-                        :root.edgepeek-scrollbar-active * {
-                            scrollbar-color: rgba(190, 199, 209, 0.58) transparent !important;
-                        }
-
-                        ::-webkit-scrollbar {
-                            width: 10px !important;
-                            height: 10px !important;
-                            background: transparent !important;
-                        }
-
-                        ::-webkit-scrollbar-track,
-                        ::-webkit-scrollbar-track-piece,
-                        ::-webkit-scrollbar-corner {
-                            background: transparent !important;
-                        }
-
-                        ::-webkit-scrollbar-button {
-                            width: 0 !important;
-                            height: 0 !important;
-                            display: none !important;
-                        }
-
-                        ::-webkit-scrollbar-thumb {
-                            min-height: 42px !important;
-                            min-width: 42px !important;
-                            border: 3px solid transparent !important;
-                            border-radius: 999px !important;
-                            background-clip: content-box !important;
-                            background-color: transparent !important;
-                        }
-
-                        :root.edgepeek-scrollbar-active ::-webkit-scrollbar-thumb {
-                            background-color: rgba(190, 199, 209, 0.58) !important;
-                        }
-
-                        :root.edgepeek-scrollbar-active ::-webkit-scrollbar-thumb:hover {
-                            background-color: rgba(218, 225, 233, 0.82) !important;
-                        }
-                    `;
-                    (document.head || document.documentElement).appendChild(style);
-                };
-
-                const showScrollbarBriefly = () => {
-                    document.documentElement.classList.add('edgepeek-scrollbar-active');
-                    window.clearTimeout(scrollbarTimer);
-                    scrollbarTimer = window.setTimeout(() => {
-                        document.documentElement.classList.remove('edgepeek-scrollbar-active');
-                    }, 950);
-                };
-
-                const post = (direction) => {
-                    const now = Date.now();
-                    if (now - lastPostAt < 160) {
-                        return;
-                    }
-                    lastPostAt = now;
-                    showScrollbarBriefly();
-                    window.chrome.webview.postMessage(`edgepeek-scroll:${direction}`);
-                };
-
-                const add = (target, eventName, handler) => {
-                    if (!target || !target.addEventListener) {
-                        return;
-                    }
-                    target.addEventListener(eventName, handler, { passive: true, capture: true });
-                };
-
-                const onWheel = (event) => {
-                    if (Math.abs(event.deltaY) < 12) {
-                        return;
-                    }
-                    post(event.deltaY > 0 ? 'down' : 'up');
-                };
-
-                const onTouchStart = (event) => {
-                    if (event.touches && event.touches.length > 0) {
-                        touchY = event.touches[0].clientY;
-                    }
-                };
-
-                const onTouchMove = (event) => {
-                    if (touchY === null || !event.touches || event.touches.length === 0) {
-                        return;
-                    }
-                    const nextY = event.touches[0].clientY;
-                    const delta = touchY - nextY;
-                    if (Math.abs(delta) > 14) {
-                        post(delta > 0 ? 'down' : 'up');
-                        touchY = nextY;
-                    }
-                };
-
-                [window, document, document.documentElement, document.body].forEach((target) => {
-                    add(target, 'wheel', onWheel);
-                    add(target, 'touchstart', onTouchStart);
-                    add(target, 'touchmove', onTouchMove);
-                });
-
-                installScrollbarStyle();
-            })();
-            """;
     }
 
     private void SetTopBarVisible(bool visible)
@@ -868,30 +720,12 @@ public partial class MainWindow : Window
 
         try
         {
-            using var stream = await tab.Browser.CoreWebView2.GetFaviconAsync(CoreWebView2FaviconImageFormat.Png);
-            if (stream is null)
+            var image = await _faviconService.LoadAsync(tab.Browser.CoreWebView2, tab.Url);
+            if (image is null)
             {
                 return;
             }
 
-            using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
-            var webViewBytes = memory.ToArray();
-            var bytes = await TryGetHighResolutionFaviconAsync(tab.Url) ?? webViewBytes;
-            var faviconPath = SaveFaviconDiagnostic(tab.Url, bytes);
-
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.StreamSource = new MemoryStream(bytes);
-            image.DecodePixelWidth = 32;
-            image.DecodePixelHeight = 32;
-            image.EndInit();
-            if (image.CanFreeze)
-            {
-                image.Freeze();
-            }
-            AppLog.Write($"Favicon loaded. url={tab.Url}; bytes={bytes.Length}; webviewBytes={webViewBytes.Length}; pixel={image.PixelWidth}x{image.PixelHeight}; decode={image.DecodePixelWidth}x{image.DecodePixelHeight}; dpi={image.DpiX:0.##}x{image.DpiY:0.##}; file={faviconPath}");
             tab.Favicon = image;
             RenderTabs();
         }
@@ -899,47 +733,6 @@ public partial class MainWindow : Window
         {
             AppLog.Write(ex);
         }
-    }
-
-    private static async Task<byte[]?> TryGetHighResolutionFaviconAsync(string url)
-    {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || string.IsNullOrWhiteSpace(uri.Host))
-        {
-            return null;
-        }
-
-        try
-        {
-            var request = $"https://www.google.com/s2/favicons?domain={Uri.EscapeDataString(uri.Host)}&sz=64";
-            var bytes = await FaviconHttpClient.GetByteArrayAsync(request);
-            return bytes.Length > 0 ? bytes : null;
-        }
-        catch (Exception ex)
-        {
-            AppLog.Write(ex);
-            return null;
-        }
-    }
-
-    private static string SaveFaviconDiagnostic(string url, byte[] bytes)
-    {
-        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EdgePeek", "favicons");
-        Directory.CreateDirectory(folder);
-
-        var host = "unknown";
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && !string.IsNullOrWhiteSpace(uri.Host))
-        {
-            host = uri.Host;
-        }
-
-        foreach (var invalid in Path.GetInvalidFileNameChars())
-        {
-            host = host.Replace(invalid, '_');
-        }
-
-        var path = Path.Combine(folder, $"{host}.png");
-        File.WriteAllBytes(path, bytes);
-        return path;
     }
 
     private void ActivateTab(BrowserTab tab)
@@ -970,7 +763,7 @@ public partial class MainWindow : Window
 
         if (_tabs.Count == 0)
         {
-            _ = AddTabAsync(_settings.HomeUrl, activate: true);
+            AddTabAsync(_settings.HomeUrl, activate: true).Forget("Create replacement tab");
             return;
         }
 

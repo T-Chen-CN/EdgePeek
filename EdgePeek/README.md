@@ -15,7 +15,8 @@ EdgePeek is a lightweight Windows-only slide-out browser prototype. It stays in 
 - Optional Ctrl+Alt+Space global hotkey
 - Optional start with Windows
 - New windows open in the same panel
-- Last URL and panel width are saved under `%APPDATA%\EdgePeek\settings.json`
+- Last URL, tabs, panel size, language, and behavior settings are saved under `%APPDATA%\EdgePeek\settings.json`
+- WebView2 profile data is stored under `%LOCALAPPDATA%\EdgePeek\WebView2` so build output stays clean
 
 ## Requirements
 
@@ -69,9 +70,28 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 The output will be under `bin\Release\net8.0-windows\win-x64\publish`.
 
+## Repository Boundaries
+
+The Git repository tracks source code, project files, manifests, README content, and shared editor/Git configuration.
+
+The repository intentionally ignores build output, local IDE state, runtime logs, WebView2 browser profiles, and checkpoint/reference archives:
+
+- `bin/`, `obj/`, `publish/`, `artifacts/`
+- `.vs/`, `.vscode/`, `*.user`
+- `*.log`, `*.tmp`
+- `*.WebView2/`, `EdgePeek.exe.WebView2/`
+- `checkpoints/`, `tmp-checkpoint-compare/`
+
+Runtime user data lives outside the repository:
+
+- Settings: `%APPDATA%\EdgePeek\settings.json`
+- WebView2 profile/cache: `%LOCALAPPDATA%\EdgePeek\WebView2`
+
+If `settings.json` cannot be read, EdgePeek backs up the corrupt file as `settings.corrupt-yyyyMMdd-HHmmss.json` before falling back to defaults.
+
 ## Next Steps
 
 - Improve multi-monitor behavior while the panel is already visible
 - Add a real app icon
 - Add an installer
-- Add configurable hotkey recording
+- Add automated tests for URL normalization, settings persistence, and hotkey parsing

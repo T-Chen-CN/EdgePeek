@@ -1,9 +1,9 @@
-# Build output
-bin/
-obj/
-publish/
-artifacts/
-TestResults/
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+[Aa]rtifacts/
+[Tt]est[Rr]esults/
 
 # IDE and local user files
 .vs/
@@ -13,11 +13,13 @@ TestResults/
 *.userosscache
 *.sln.docstates
 
-# Runtime data and logs
+# Local runtime data
 *.log
+*.tmp
 *.WebView2/
 EdgePeek.exe.WebView2/
+**/EdgePeek.exe.WebView2/
 
-# Local temporary snapshots
+# Local snapshots and reference captures
 checkpoints/
 tmp-checkpoint-compare/

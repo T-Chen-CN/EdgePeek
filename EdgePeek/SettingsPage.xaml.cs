@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using EdgePeek.Localization;
 
 namespace EdgePeek;
 
@@ -62,21 +63,22 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
 
     public bool TrySave()
     {
+        var zh = IsChinese();
         if (!int.TryParse(TriggerBox.Text, out var triggerThickness) || triggerThickness < 1 || triggerThickness > 32)
         {
-            ShowValidation("Hot zone must be between 1 and 32 pixels.", "热区像素必须在 1 到 32 之间。");
+            ShowValidation(Strings.HotZoneValidation(zh));
             return false;
         }
 
         if (!int.TryParse(HoverDelayBox.Text, out var hoverDelayMs) || hoverDelayMs < 0 || hoverDelayMs > 5000)
         {
-            ShowValidation("Edge delay must be between 0 and 5000 milliseconds.", "靠边触发时长必须在 0 到 5000 毫秒之间。");
+            ShowValidation(Strings.EdgeDelayValidation(zh));
             return false;
         }
 
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         var selectedEdge = (EdgeBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        _settings.Language = string.Equals(selectedLanguage, "zh-CN", StringComparison.OrdinalIgnoreCase) ? "zh-CN" : "en";
+        _settings.Language = Strings.IsChinese(selectedLanguage) ? "zh-CN" : "en";
         _settings.Edge = string.Equals(selectedEdge, "Left", StringComparison.OrdinalIgnoreCase) ? DockEdge.Left : DockEdge.Right;
         _settings.TriggerThickness = triggerThickness;
         _settings.EdgeHoverDelayMs = hoverDelayMs;
@@ -105,7 +107,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
     private void RecordHotkeyButton_Click(object sender, RoutedEventArgs e)
     {
         _isRecordingHotkey = true;
-        HotkeyGestureBox.Text = IsChinese() ? "请按快捷键..." : "Press shortcut...";
+        HotkeyGestureBox.Text = Strings.PressShortcut(IsChinese());
         Focusable = true;
         Focus();
     }
@@ -128,7 +130,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         var gesture = BuildGesture(Keyboard.Modifiers, key);
         if (gesture is null)
         {
-            ShowValidation("Use at least one modifier key, such as Ctrl or Alt.", "请至少包含一个修饰键，例如 Ctrl 或 Alt。");
+            ShowValidation(Strings.HotkeyValidation(IsChinese()));
             return;
         }
 
@@ -156,29 +158,27 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
     private void ApplyLanguage()
     {
         var zh = IsChinese();
-        TitleText.Text = zh ? "设置" : "Settings";
-        LanguageLabel.Text = zh ? "语言" : "Language";
-        DockEdgeLabel.Text = zh ? "停靠边缘" : "Dock edge";
-        TriggerLabel.Text = zh ? "热区像素" : "Hot zone px";
-        SetTriggerHelpText(zh
-            ? "屏幕边缘的感应区域宽度。数值越大越容易触发，但也更容易误触。"
-            : "Width of the screen-edge sensing area. Larger values are easier to trigger but may cause accidental popups.");
-        HoverDelayLabel.Text = zh ? "靠边触发时长(ms)" : "Edge delay ms";
-        HomeUrlLabel.Text = zh ? "主页地址" : "Home URL";
-        HotkeyLabel.Text = zh ? "快捷键" : "Hotkey";
-        RecordHotkeyButton.Content = zh ? "录制" : "Record";
-        TopMostBox.Content = zh ? "保持窗口置顶" : "Keep panel above other windows";
-        HideOnLostFocusBox.Content = zh ? "失去焦点时隐藏" : "Hide when focus is lost";
-        StartWithWindowsBox.Content = zh ? "开机启动" : "Start with Windows";
-        HotkeyBox.Content = zh ? "启用快捷键" : "Enable hotkey";
-        BackButton.Content = zh ? "返回" : "Back";
-        SaveButton.Content = zh ? "保存" : "Save";
+        TitleText.Text = Strings.SettingsTitle(zh);
+        LanguageLabel.Text = Strings.Language(zh);
+        DockEdgeLabel.Text = Strings.DockEdge(zh);
+        TriggerLabel.Text = Strings.HotZonePx(zh);
+        SetTriggerHelpText(Strings.TriggerHelp(zh));
+        HoverDelayLabel.Text = Strings.EdgeDelayMs(zh);
+        HomeUrlLabel.Text = Strings.HomeUrl(zh);
+        HotkeyLabel.Text = Strings.Hotkey(zh);
+        RecordHotkeyButton.Content = Strings.Record(zh);
+        TopMostBox.Content = Strings.TopMost(zh);
+        HideOnLostFocusBox.Content = Strings.HideOnLostFocus(zh);
+        StartWithWindowsBox.Content = Strings.StartWithWindows(zh);
+        HotkeyBox.Content = Strings.EnableHotkey(zh);
+        BackButton.Content = Strings.Back(zh);
+        SaveButton.Content = Strings.Save(zh);
 
         foreach (ComboBoxItem item in EdgeBox.Items)
         {
             item.Content = item.Tag?.ToString() == "Left"
-                ? (zh ? "左侧" : "Left")
-                : (zh ? "右侧" : "Right");
+                ? Strings.Left(zh)
+                : Strings.Right(zh);
         }
     }
 
@@ -190,7 +190,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
     private bool IsChinese()
     {
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        return string.Equals(selectedLanguage ?? _settings.Language, "zh-CN", StringComparison.OrdinalIgnoreCase);
+        return Strings.IsChinese(selectedLanguage ?? _settings.Language);
     }
 
     private bool HasChanges()
@@ -210,9 +210,9 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
                HotkeyBox.IsChecked != _settings.EnableGlobalHotkey;
     }
 
-    private void ShowValidation(string english, string chinese)
+    private void ShowValidation(string message)
     {
-        System.Windows.MessageBox.Show(IsChinese() ? chinese : english, IsChinese() ? "设置无效" : "Invalid settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+        System.Windows.MessageBox.Show(message, Strings.InvalidSettingsTitle(IsChinese()), MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void TriggerHelpButton_Click(object sender, RoutedEventArgs e)
