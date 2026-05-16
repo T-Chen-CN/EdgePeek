@@ -53,6 +53,12 @@ dotnet run
 
 The app starts hidden. Move the cursor to the configured screen edge or double-click the tray icon to show it.
 
+## Run Tests
+
+```powershell
+dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
+```
+
 ## Publish A Local Build
 
 Framework-dependent build:

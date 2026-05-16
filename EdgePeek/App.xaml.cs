@@ -23,7 +23,6 @@ public partial class App : System.Windows.Application
         _mainWindow.SettingsApplied += (_, _) => _trayIconManager.RefreshMenu();
 
         _mainWindow.Show();
-        _mainWindow.Dispatcher.BeginInvoke(() => _mainWindow.ShowPanel(forceFocus: true));
     }
 
     private void ExitApplication()
