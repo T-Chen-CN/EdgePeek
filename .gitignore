@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+publish/
+artifacts/
+TestResults/
+
+# IDE and local user files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Runtime data and logs
+*.log
+*.WebView2/
+EdgePeek.exe.WebView2/
+
+# Local temporary snapshots
+checkpoints/
+tmp-checkpoint-compare/
