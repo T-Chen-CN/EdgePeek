@@ -59,6 +59,31 @@ The app starts hidden. Move the cursor to the configured screen edge or double-c
 dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 ```
 
+## Build Release Artifacts
+
+Portable zip only:
+
+```powershell
+.\scripts\publish-release.ps1 -Version 0.1.0 -SkipInstaller
+```
+
+Portable zip plus an Inno Setup installer:
+
+```powershell
+.\scripts\publish-release.ps1 -Version 0.1.0
+```
+
+Signed release artifacts:
+
+```powershell
+.\scripts\publish-release.ps1 `
+  -Version 0.1.0 `
+  -CertificatePath C:\certs\publisher.pfx `
+  -CertificatePassword "<pfx-password>"
+```
+
+The script writes release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
+
 ## Publish A Local Build
 
 Framework-dependent build:
