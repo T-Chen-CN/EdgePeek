@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version, for example 0.1.0
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  DOTNET_VERSION: 8.0.x
+  SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+  SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+  SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+  SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+
+jobs:
+  build-release:
+    name: Build release artifacts
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}".TrimStart("v")
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build unsigned release artifacts
+        shell: pwsh
+        run: .\scripts\publish-release.ps1 -Version "${{ steps.version.outputs.value }}"
+
+      - name: Upload unsigned release artifact
+        id: upload-unsigned-release
+        uses: actions/upload-artifact@v4
+        with:
+          name: edgepeek-${{ steps.version.outputs.value }}-unsigned-release
+          path: |
+            artifacts/EdgePeek-${{ steps.version.outputs.value }}-win-x64-portable.zip
+            artifacts/EdgePeekSetup-${{ steps.version.outputs.value }}-win-x64.exe
+          if-no-files-found: error
+
+      - name: Submit SignPath signing request
+        id: signpath
+        if: >-
+          ${{
+            env.SIGNPATH_API_TOKEN != '' &&
+            env.SIGNPATH_ORGANIZATION_ID != '' &&
+            env.SIGNPATH_PROJECT_SLUG != '' &&
+            env.SIGNPATH_SIGNING_POLICY_SLUG != ''
+          }}
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ env.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-release.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: artifacts-signed
+          parameters: |
+            version: "${{ steps.version.outputs.value }}"
+
+      - name: Upload signed release artifact
+        if: steps.signpath.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: edgepeek-${{ steps.version.outputs.value }}-signed-release
+          path: artifacts-signed
+          if-no-files-found: error
