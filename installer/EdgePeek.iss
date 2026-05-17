@@ -20,6 +20,7 @@ DefaultGroupName=EdgePeek
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=EdgePeekSetup-{#AppVersion}-win-x64
+SetupIconFile=..\EdgePeek\Assets\AppIcon.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
