@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private const double DefaultPanelWidth = 460;
     private const double MaxPanelScreenRatio = 0.7;
     private const double TopBarHeight = 38;
+    private const double TabRailWidth = 48;
 
     private readonly AppSettings _settings;
     private readonly SettingsStore _settingsStore;
@@ -802,9 +803,9 @@ public partial class MainWindow : Window
             var selected = ReferenceEquals(tab, _activeTab);
             var button = new System.Windows.Controls.Button
             {
-                Width = 42,
-                Height = 42,
-                Margin = new Thickness(0, 0, 0, 7),
+                Width = 36,
+                Height = 36,
+                Margin = new Thickness(0, 0, 0, 6),
                 Padding = new Thickness(0),
                 Tag = tab,
                 Background = selected ? (System.Windows.Media.Brush)FindResource("SurfaceBg") : System.Windows.Media.Brushes.Transparent,
@@ -832,8 +833,8 @@ public partial class MainWindow : Window
                 var image = new System.Windows.Controls.Image
                 {
                     Source = tab.Favicon,
-                    Width = 20,
-                    Height = 20,
+                    Width = 19,
+                    Height = 19,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -877,8 +878,8 @@ public partial class MainWindow : Window
     private void ApplyTabRailPlacement()
     {
         var showLeft = _settings.Edge == DockEdge.Right;
-        LeftTabColumn.Width = showLeft ? new GridLength(56) : new GridLength(0);
-        RightTabColumn.Width = showLeft ? new GridLength(0) : new GridLength(56);
+        LeftTabColumn.Width = showLeft ? new GridLength(TabRailWidth) : new GridLength(0);
+        RightTabColumn.Width = showLeft ? new GridLength(0) : new GridLength(TabRailWidth);
         LeftTabRail.Visibility = showLeft ? Visibility.Visible : Visibility.Collapsed;
         RightTabRail.Visibility = showLeft ? Visibility.Collapsed : Visibility.Visible;
         LeftTabRail.Opacity = showLeft ? 1 : 0;

@@ -25,7 +25,7 @@
           ClipToBounds="True">
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition x:Name="LeftTabColumn" Width="56"/>
+        <ColumnDefinition x:Name="LeftTabColumn" Width="48"/>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition x:Name="RightTabColumn" Width="0"/>
       </Grid.ColumnDefinitions>
@@ -35,7 +35,7 @@
               Background="{StaticResource RailBg}"
               BorderBrush="{StaticResource BorderSoft}"
               BorderThickness="0,0,1,0">
-        <DockPanel LastChildFill="True" Margin="7">
+        <DockPanel LastChildFill="True" Margin="5">
           <Border DockPanel.Dock="Top"
                   Height="30"
                   Margin="0,0,0,8"
@@ -54,7 +54,7 @@
                        Foreground="{StaticResource TextMuted}"
                        FontWeight="Normal"/>
           </Border>
-          <Button DockPanel.Dock="Bottom" Height="38" Click="NewTabButton_Click" ToolTip="New tab">
+          <Button DockPanel.Dock="Bottom" Height="34" Click="NewTabButton_Click" ToolTip="New tab">
             <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="15"/>
           </Button>
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -76,15 +76,15 @@
                 Background="{StaticResource ChromeBg}"
                 BorderBrush="{StaticResource BorderSoft}"
                 BorderThickness="0,0,0,1">
-          <Grid Margin="7,5">
+          <Grid Margin="6,5">
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="28"/>
-              <ColumnDefinition Width="28"/>
-              <ColumnDefinition Width="28"/>
+              <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
               <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="28"/>
-              <ColumnDefinition Width="28"/>
-              <ColumnDefinition Width="28"/>
+              <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
 
             <Button x:Name="BackButton" Grid.Column="0" Click="BackButton_Click" ToolTip="Back">
@@ -98,7 +98,8 @@
             </Button>
             <TextBox x:Name="AddressBox"
                      Grid.Column="3"
-                     Margin="6,0"
+                     Margin="4,0"
+                     MinWidth="140"
                      VerticalContentAlignment="Center"
                      KeyDown="AddressBox_KeyDown"/>
             <Button Grid.Column="4" Click="HomeButton_Click" ToolTip="Home">
@@ -150,7 +151,7 @@
               BorderBrush="{StaticResource BorderSoft}"
               BorderThickness="1,0,0,0"
               Visibility="Collapsed">
-        <DockPanel LastChildFill="True" Margin="7">
+        <DockPanel LastChildFill="True" Margin="5">
           <Border DockPanel.Dock="Top"
                   Height="30"
                   Margin="0,0,0,8"
@@ -169,7 +170,7 @@
                        Foreground="{StaticResource TextMuted}"
                        FontWeight="Normal"/>
           </Border>
-          <Button DockPanel.Dock="Bottom" Height="38" Click="NewTabButton_Click" ToolTip="New tab">
+          <Button DockPanel.Dock="Bottom" Height="34" Click="NewTabButton_Click" ToolTip="New tab">
             <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="15"/>
           </Button>
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
