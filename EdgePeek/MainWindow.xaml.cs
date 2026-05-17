@@ -98,7 +98,7 @@ public partial class MainWindow : Window
             }
         };
 
-        _hotEdgeWatcher = new HotEdgeWatcher(_settings);
+        _hotEdgeWatcher = new HotEdgeWatcher(_settings, GetPanelHotZoneBounds);
         _hotEdgeWatcher.HotEdgeReached += (_, _) => ShowPanel(forceFocus: false);
 
         _hotKeyManager = new HotKeyManager(this, _settings);
@@ -1129,17 +1129,42 @@ public partial class MainWindow : Window
 
     private double GetPanelWidth()
     {
-        if (ActualWidth > 0 && !double.IsInfinity(ActualWidth) && !double.IsNaN(ActualWidth))
+        if (IsUsableLength(ActualWidth))
         {
             return ActualWidth;
         }
 
-        if (Width > 0 && !double.IsInfinity(Width) && !double.IsNaN(Width))
+        if (IsUsableLength(Width))
         {
             return Width;
         }
 
         return ClampPanelWidth(_settings.PanelWidth);
+    }
+
+    private double GetPanelHeight()
+    {
+        if (IsUsableLength(ActualHeight))
+        {
+            return ActualHeight;
+        }
+
+        if (IsUsableLength(Height))
+        {
+            return Height;
+        }
+
+        return _settings.PanelHeight;
+    }
+
+    private static bool IsUsableLength(double value)
+    {
+        return value > 0 && IsFiniteNumber(value);
+    }
+
+    private static bool IsFiniteNumber(double value)
+    {
+        return !double.IsInfinity(value) && !double.IsNaN(value);
     }
 
     private double ClampPanelWidth(double width)
@@ -1186,6 +1211,28 @@ public partial class MainWindow : Window
             rectangle.Top / dpi.DpiScaleY,
             rectangle.Width / dpi.DpiScaleX,
             rectangle.Height / dpi.DpiScaleY);
+    }
+
+    private System.Drawing.Rectangle GetPanelHotZoneBounds(System.Drawing.Rectangle screenWorkingArea)
+    {
+        var dpi = VisualTreeHelper.GetDpi(this);
+        var topDip = IsFiniteNumber(Top) ? Top : _settings.PanelTop;
+        var heightDip = GetPanelHeight();
+        if (!IsFiniteNumber(topDip) || !IsUsableLength(heightDip))
+        {
+            return screenWorkingArea;
+        }
+
+        var top = (int)Math.Round(topDip * dpi.DpiScaleY);
+        var height = Math.Max(1, (int)Math.Round(heightDip * dpi.DpiScaleY));
+        top = Math.Clamp(top, screenWorkingArea.Top, screenWorkingArea.Bottom - 1);
+        var bottom = Math.Clamp(top + height, top + 1, screenWorkingArea.Bottom);
+
+        return new System.Drawing.Rectangle(
+            screenWorkingArea.Left,
+            top,
+            screenWorkingArea.Width,
+            bottom - top);
     }
 
     private void AnimateTo(double targetLeft, int durationMs, WindowAnimationEasing easing, Action? completed = null)

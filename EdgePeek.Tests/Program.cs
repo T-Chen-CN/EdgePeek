@@ -12,6 +12,8 @@ var tests = new (string Name, Action Body)[]
     ("hotkey parses ctrl alt space", ParsesCtrlAltSpace),
     ("hotkey rejects missing modifier", () => False(HotkeyGestureParser.TryParse("Space", out _))),
     ("hotkey builds gesture", () => Equal("Ctrl+Alt+K", HotkeyGestureParser.Build(ModifierKeys.Control | ModifierKeys.Alt, Key.K))),
+    ("hot edge requires panel vertical range", HotEdgeRequiresPanelVerticalRange),
+    ("hot edge accepts matching panel range", HotEdgeAcceptsMatchingPanelRange),
 };
 
 var failed = 0;
@@ -43,6 +45,24 @@ static void ParsesCtrlAltSpace()
     True(HotkeyGestureParser.TryParse("Ctrl+Alt+Space", out var gesture));
     Equal(HotkeyGestureParser.ModControl | HotkeyGestureParser.ModAlt, gesture.Modifiers);
     Equal(Key.Space, gesture.Key);
+}
+
+static void HotEdgeRequiresPanelVerticalRange()
+{
+    var screen = new System.Drawing.Rectangle(0, 0, 1920, 1080);
+    var panel = new System.Drawing.Rectangle(0, 300, 1920, 420);
+    var cursor = new System.Drawing.Point(1919, 120);
+
+    False(HotEdgeWatcher.IsInHotZone(cursor, screen, panel, DockEdge.Right, 4));
+}
+
+static void HotEdgeAcceptsMatchingPanelRange()
+{
+    var screen = new System.Drawing.Rectangle(0, 0, 1920, 1080);
+    var panel = new System.Drawing.Rectangle(0, 300, 1920, 420);
+    var cursor = new System.Drawing.Point(1919, 520);
+
+    True(HotEdgeWatcher.IsInHotZone(cursor, screen, panel, DockEdge.Right, 4));
 }
 
 static void Equal<T>(T expected, T actual)
