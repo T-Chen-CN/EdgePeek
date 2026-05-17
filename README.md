@@ -55,7 +55,9 @@ dotnet restore
 dotnet run
 ```
 
-The app starts hidden. Move the cursor to the configured screen edge or double-click the tray icon to show it.
+When run from source with `dotnet run`, the debug launch profile passes `--show` so the panel opens immediately.
+Release builds start hidden by default. Move the cursor to the configured screen edge, use the global hotkey, or double-click the tray icon to show it.
+To force a release build to open immediately, run `EdgePeek.exe --show`.
 
 ## Run Tests
 
