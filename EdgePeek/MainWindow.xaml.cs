@@ -410,32 +410,44 @@ public partial class MainWindow : Window
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActiveBrowser?.CanGoBack == true)
+        TryCloseSettingsPage(() =>
         {
-            ActiveBrowser.GoBack();
-        }
+            if (ActiveBrowser?.CanGoBack == true)
+            {
+                ActiveBrowser.GoBack();
+            }
+        });
     }
 
     private void ForwardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActiveBrowser?.CanGoForward == true)
+        TryCloseSettingsPage(() =>
         {
-            ActiveBrowser.GoForward();
-        }
+            if (ActiveBrowser?.CanGoForward == true)
+            {
+                ActiveBrowser.GoForward();
+            }
+        });
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        ActiveBrowser?.Reload();
+        TryCloseSettingsPage(() => ActiveBrowser?.Reload());
     }
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        NavigateTo(_settings.HomeUrl);
+        TryCloseSettingsPage(() => NavigateTo(_settings.HomeUrl));
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
+        if (SettingsHost.Visibility == Visibility.Visible && _settingsPage is not null)
+        {
+            TryCloseSettingsPage();
+            return;
+        }
+
         OpenSettings();
     }
 
@@ -503,7 +515,8 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            NavigateTo(AddressBox.Text);
+            var input = AddressBox.Text;
+            TryCloseSettingsPage(() => NavigateTo(input));
         }
     }
 
@@ -525,9 +538,9 @@ public partial class MainWindow : Window
         ForwardButton.IsEnabled = ActiveBrowser?.CanGoForward == true;
     }
 
-    private async void NewTabButton_Click(object sender, RoutedEventArgs e)
+    private void NewTabButton_Click(object sender, RoutedEventArgs e)
     {
-        await AddTabAsync(_settings.HomeUrl, activate: true);
+        TryCloseSettingsPage(() => AddTabAsync(_settings.HomeUrl, activate: true).Forget("Create tab from button"));
     }
 
     private void RestoreTabs()
