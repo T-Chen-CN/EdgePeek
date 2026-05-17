@@ -25,15 +25,6 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
 
     private void LoadSettings()
     {
-        foreach (ComboBoxItem item in EdgeBox.Items)
-        {
-            if (string.Equals(item.Tag?.ToString(), _settings.Edge.ToString(), StringComparison.OrdinalIgnoreCase))
-            {
-                EdgeBox.SelectedItem = item;
-                break;
-            }
-        }
-
         foreach (ComboBoxItem item in LanguageBox.Items)
         {
             if (string.Equals(item.Tag?.ToString(), _settings.Language, StringComparison.OrdinalIgnoreCase))
@@ -78,9 +69,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         }
 
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        var selectedEdge = (EdgeBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         _settings.Language = Strings.IsChinese(selectedLanguage) ? "zh-CN" : "en";
-        _settings.Edge = string.Equals(selectedEdge, "Left", StringComparison.OrdinalIgnoreCase) ? DockEdge.Left : DockEdge.Right;
         _settings.TriggerThickness = triggerThickness;
         _settings.EdgeHoverDelayMs = hoverDelayMs;
         _settings.HomeUrl = UrlNormalizer.NormalizeHomeUrl(HomeUrlBox.Text);
@@ -146,7 +135,6 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         var zh = IsChinese();
         TitleText.Text = Strings.SettingsTitle(zh);
         LanguageLabel.Text = Strings.Language(zh);
-        DockEdgeLabel.Text = Strings.DockEdge(zh);
         TriggerLabel.Text = Strings.HotZonePx(zh);
         SetTriggerHelpText(Strings.TriggerHelp(zh));
         HoverDelayLabel.Text = Strings.EdgeDelayMs(zh);
@@ -161,12 +149,6 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         BackButton.Content = Strings.Back(zh);
         SaveButton.Content = Strings.Save(zh);
 
-        foreach (ComboBoxItem item in EdgeBox.Items)
-        {
-            item.Content = item.Tag?.ToString() == "Left"
-                ? Strings.Left(zh)
-                : Strings.Right(zh);
-        }
     }
 
     public bool IsChineseLanguage()
@@ -183,10 +165,8 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
     private bool HasChanges()
     {
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
-        var selectedEdge = (EdgeBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Right";
 
         return !string.Equals(selectedLanguage, _settings.Language, StringComparison.OrdinalIgnoreCase) ||
-               !string.Equals(selectedEdge, _settings.Edge.ToString(), StringComparison.OrdinalIgnoreCase) ||
                TriggerBox.Text.Trim() != _settings.TriggerThickness.ToString() ||
                HoverDelayBox.Text.Trim() != _settings.EdgeHoverDelayMs.ToString() ||
                UrlNormalizer.NormalizeHomeUrl(HomeUrlBox.Text) != _settings.HomeUrl ||

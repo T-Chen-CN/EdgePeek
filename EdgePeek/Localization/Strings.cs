@@ -9,7 +9,6 @@ public static class Strings
 
     public static string SettingsTitle(bool zh) => zh ? "设置" : "Settings";
     public static string Language(bool zh) => zh ? "语言" : "Language";
-    public static string DockEdge(bool zh) => zh ? "停靠边缘" : "Dock edge";
     public static string HotZonePx(bool zh) => zh ? "热区像素" : "Hot zone px";
     public static string EdgeDelayMs(bool zh) => zh ? "贴边触发时长(ms)" : "Edge delay ms";
     public static string HomeUrl(bool zh) => zh ? "主页地址" : "Home URL";
