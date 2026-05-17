@@ -803,9 +803,9 @@ public partial class MainWindow : Window
             var selected = ReferenceEquals(tab, _activeTab);
             var button = new System.Windows.Controls.Button
             {
-                Width = 36,
-                Height = 36,
-                Margin = new Thickness(0, 0, 0, 6),
+                Width = 40,
+                Height = 40,
+                Margin = new Thickness(0, 0, 0, 5),
                 Padding = new Thickness(0),
                 Tag = tab,
                 Background = selected ? (System.Windows.Media.Brush)FindResource("SurfaceBg") : System.Windows.Media.Brushes.Transparent,
@@ -813,19 +813,19 @@ public partial class MainWindow : Window
             };
 
             var layout = new Grid();
-            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
-            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(4) });
 
             var indicator = new Border
             {
-                Width = 2,
-                Height = 17,
+                Width = 18,
+                Height = 2,
                 CornerRadius = new CornerRadius(2),
                 Background = selected ? (System.Windows.Media.Brush)FindResource("AccentBrush") : System.Windows.Media.Brushes.Transparent,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom
             };
-            Grid.SetColumn(indicator, 0);
+            Grid.SetRow(indicator, 1);
 
             FrameworkElement tabContent;
             if (tab.Favicon is not null)
@@ -833,8 +833,8 @@ public partial class MainWindow : Window
                 var image = new System.Windows.Controls.Image
                 {
                     Source = tab.Favicon,
-                    Width = 19,
-                    Height = 19,
+                    Width = 20,
+                    Height = 20,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -853,10 +853,10 @@ public partial class MainWindow : Window
                     Foreground = selected ? (System.Windows.Media.Brush)FindResource("TextMain") : (System.Windows.Media.Brush)FindResource("TextMuted")
                 };
             }
-            Grid.SetColumn(tabContent, 1);
+            Grid.SetRow(tabContent, 0);
 
-            layout.Children.Add(indicator);
             layout.Children.Add(tabContent);
+            layout.Children.Add(indicator);
 
             button.Content = layout;
             button.ToolTip = $"{tab.Title}\nDouble-click to close";
