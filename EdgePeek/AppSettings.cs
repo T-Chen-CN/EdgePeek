@@ -20,6 +20,7 @@ public sealed class AppSettings
     public bool HideOnLostFocus { get; set; } = true;
     public bool TopMost { get; set; } = true;
     public bool StartWithWindows { get; set; }
+    public bool ShowOnStartup { get; set; }
     public bool EnableGlobalHotkey { get; set; } = true;
     public string HotkeyGesture { get; set; } = "Ctrl+Alt+Space";
     public string Language { get; set; } = "en";

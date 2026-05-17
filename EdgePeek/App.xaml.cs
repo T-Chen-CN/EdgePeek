@@ -23,7 +23,7 @@ public partial class App : System.Windows.Application
         _mainWindow.SettingsApplied += (_, _) => _trayIconManager.RefreshMenu();
 
         _mainWindow.Show();
-        if (ShouldShowOnStartup(e.Args))
+        if (settings.ShowOnStartup || ShouldShowOnStartup(e.Args))
         {
             _mainWindow.Dispatcher.BeginInvoke(() => _mainWindow.ShowPanel(forceFocus: true));
         }

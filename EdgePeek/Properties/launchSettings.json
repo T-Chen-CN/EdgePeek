@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "EdgePeek": {
-      "commandName": "Project",
-      "commandLineArgs": "--show"
-    }
-  }
-}

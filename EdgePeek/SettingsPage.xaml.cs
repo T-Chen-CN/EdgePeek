@@ -50,6 +50,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         TopMostBox.IsChecked = _settings.TopMost;
         HideOnLostFocusBox.IsChecked = _settings.HideOnLostFocus;
         StartWithWindowsBox.IsChecked = _settings.StartWithWindows;
+        ShowOnStartupBox.IsChecked = _settings.ShowOnStartup;
         HotkeyBox.IsChecked = _settings.EnableGlobalHotkey;
     }
 
@@ -87,6 +88,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         _settings.TopMost = TopMostBox.IsChecked == true;
         _settings.HideOnLostFocus = HideOnLostFocusBox.IsChecked == true;
         _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
+        _settings.ShowOnStartup = ShowOnStartupBox.IsChecked == true;
         _settings.EnableGlobalHotkey = HotkeyBox.IsChecked == true;
         return true;
     }
@@ -154,6 +156,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         TopMostBox.Content = Strings.TopMost(zh);
         HideOnLostFocusBox.Content = Strings.HideOnLostFocus(zh);
         StartWithWindowsBox.Content = Strings.StartWithWindows(zh);
+        ShowOnStartupBox.Content = Strings.ShowOnStartup(zh);
         HotkeyBox.Content = Strings.EnableHotkey(zh);
         BackButton.Content = Strings.Back(zh);
         SaveButton.Content = Strings.Save(zh);
@@ -191,6 +194,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
                TopMostBox.IsChecked != _settings.TopMost ||
                HideOnLostFocusBox.IsChecked != _settings.HideOnLostFocus ||
                StartWithWindowsBox.IsChecked != _settings.StartWithWindows ||
+               ShowOnStartupBox.IsChecked != _settings.ShowOnStartup ||
                HotkeyBox.IsChecked != _settings.EnableGlobalHotkey;
     }
 

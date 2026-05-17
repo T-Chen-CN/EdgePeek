@@ -108,6 +108,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="138"/>
@@ -123,7 +124,8 @@
           <CheckBox x:Name="TopMostBox" Grid.Row="1" Grid.Column="1" Content="Keep panel above other windows" Margin="0,0,0,10"/>
           <CheckBox x:Name="HideOnLostFocusBox" Grid.Row="2" Grid.Column="1" Content="Hide when focus is lost" Margin="0,0,0,10"/>
           <CheckBox x:Name="StartWithWindowsBox" Grid.Row="3" Grid.Column="1" Content="Start with Windows" Margin="0,0,0,10"/>
-          <CheckBox x:Name="HotkeyBox" Grid.Row="4" Grid.Column="1" Content="Enable hotkey"/>
+          <CheckBox x:Name="ShowOnStartupBox" Grid.Row="4" Grid.Column="1" Content="Show panel when EdgePeek starts" Margin="0,0,0,10"/>
+          <CheckBox x:Name="HotkeyBox" Grid.Row="5" Grid.Column="1" Content="Enable hotkey"/>
         </Grid>
       </Border>
 

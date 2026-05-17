@@ -1,9 +1,11 @@
 using System.ComponentModel;
+using System.IO;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using EdgePeek.Localization;
 using EdgePeek.Services;
@@ -54,6 +56,7 @@ public partial class MainWindow : Window
         _settingsStore = settingsStore;
 
         InitializeComponent();
+        LoadWindowIcon();
 
         CaptureCurrentScreenBounds();
         Width = ClampPanelWidth(_settings.PanelWidth);
@@ -122,6 +125,25 @@ public partial class MainWindow : Window
     private void MainWindow_SourceInitialized(object? sender, EventArgs e)
     {
         WindowChromeHelper.HideFromAltTab(this);
+    }
+
+    private void LoadWindowIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+        if (!File.Exists(iconPath))
+        {
+            return;
+        }
+
+        try
+        {
+            Icon = BitmapFrame.Create(new System.Uri(iconPath, System.UriKind.Absolute));
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write("Window icon load failed.");
+            AppLog.Write(ex);
+        }
     }
 
     public async void ShowPanel(bool forceFocus)

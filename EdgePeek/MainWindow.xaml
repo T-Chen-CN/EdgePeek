@@ -5,7 +5,6 @@
         Title="EdgePeek"
         Width="460"
         Height="720"
-        Icon="Assets/AppIcon.ico"
         MinWidth="320"
         MinHeight="420"
         WindowStyle="None"
