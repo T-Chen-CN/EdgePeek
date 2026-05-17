@@ -82,7 +82,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         _settings.Edge = string.Equals(selectedEdge, "Left", StringComparison.OrdinalIgnoreCase) ? DockEdge.Left : DockEdge.Right;
         _settings.TriggerThickness = triggerThickness;
         _settings.EdgeHoverDelayMs = hoverDelayMs;
-        _settings.HomeUrl = NormalizeHomeUrl(HomeUrlBox.Text);
+        _settings.HomeUrl = UrlNormalizer.NormalizeHomeUrl(HomeUrlBox.Text);
         _settings.HotkeyGesture = HotkeyGestureBox.Text;
         _settings.TopMost = TopMostBox.IsChecked == true;
         _settings.HideOnLostFocus = HideOnLostFocusBox.IsChecked == true;
@@ -127,7 +127,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
             return;
         }
 
-        var gesture = BuildGesture(Keyboard.Modifiers, key);
+        var gesture = HotkeyGestureParser.Build(Keyboard.Modifiers, key);
         if (gesture is null)
         {
             ShowValidation(Strings.HotkeyValidation(IsChinese()));
@@ -137,22 +137,6 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         HotkeyGestureBox.Text = gesture;
         _isRecordingHotkey = false;
         e.Handled = true;
-    }
-
-    private static string? BuildGesture(ModifierKeys modifiers, Key key)
-    {
-        if (modifiers == ModifierKeys.None || key == Key.None)
-        {
-            return null;
-        }
-
-        var parts = new List<string>();
-        if (modifiers.HasFlag(ModifierKeys.Control)) parts.Add("Ctrl");
-        if (modifiers.HasFlag(ModifierKeys.Alt)) parts.Add("Alt");
-        if (modifiers.HasFlag(ModifierKeys.Shift)) parts.Add("Shift");
-        if (modifiers.HasFlag(ModifierKeys.Windows)) parts.Add("Win");
-        parts.Add(key.ToString());
-        return string.Join("+", parts);
     }
 
     private void ApplyLanguage()
@@ -202,7 +186,7 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
                !string.Equals(selectedEdge, _settings.Edge.ToString(), StringComparison.OrdinalIgnoreCase) ||
                TriggerBox.Text.Trim() != _settings.TriggerThickness.ToString() ||
                HoverDelayBox.Text.Trim() != _settings.EdgeHoverDelayMs.ToString() ||
-               NormalizeHomeUrl(HomeUrlBox.Text) != _settings.HomeUrl ||
+               UrlNormalizer.NormalizeHomeUrl(HomeUrlBox.Text) != _settings.HomeUrl ||
                HotkeyGestureBox.Text != _settings.HotkeyGesture ||
                TopMostBox.IsChecked != _settings.TopMost ||
                HideOnLostFocusBox.IsChecked != _settings.HideOnLostFocus ||
@@ -246,20 +230,4 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         };
     }
 
-    private static string NormalizeHomeUrl(string value)
-    {
-        var input = value.Trim();
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return "https://www.bing.com";
-        }
-
-        if (Uri.TryCreate(input, UriKind.Absolute, out var uri) &&
-            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-        {
-            return uri.ToString();
-        }
-
-        return $"https://{input}";
-    }
 }

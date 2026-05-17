@@ -9,10 +9,6 @@ public sealed class HotKeyManager : IDisposable
 {
     private const int HotKeyId = 0x4550;
     private const int WmHotKey = 0x0312;
-    private const uint ModAlt = 0x0001;
-    private const uint ModControl = 0x0002;
-    private const uint ModShift = 0x0004;
-    private const uint ModWin = 0x0008;
     private const uint ModNoRepeat = 0x4000;
 
     private readonly Window _window;
@@ -70,21 +66,20 @@ public sealed class HotKeyManager : IDisposable
 
         Unregister();
 
-        if (!TryParseGesture(_settings.HotkeyGesture, out var modifiers, out var key))
+        if (!HotkeyGestureParser.TryParse(_settings.HotkeyGesture, out var gesture))
         {
-            modifiers = ModControl | ModAlt;
-            key = Key.Space;
+            gesture = new HotkeyGesture(HotkeyGestureParser.ModControl | HotkeyGestureParser.ModAlt, Key.Space);
         }
 
-        var virtualKey = (uint)KeyInterop.VirtualKeyFromKey(key);
-        _isRegistered = RegisterHotKey(_source.Handle, HotKeyId, modifiers | ModNoRepeat, virtualKey);
+        var virtualKey = (uint)KeyInterop.VirtualKeyFromKey(gesture.Key);
+        _isRegistered = RegisterHotKey(_source.Handle, HotKeyId, gesture.Modifiers | ModNoRepeat, virtualKey);
         if (_isRegistered)
         {
-            AppLog.Write($"Hotkey registered. gesture={_settings.HotkeyGesture}; modifiers={modifiers}; key={key}; vk={virtualKey}");
+            AppLog.Write($"Hotkey registered. gesture={_settings.HotkeyGesture}; modifiers={gesture.Modifiers}; key={gesture.Key}; vk={virtualKey}");
         }
         else
         {
-            AppLog.Write($"Hotkey registration failed. gesture={_settings.HotkeyGesture}; modifiers={modifiers}; key={key}; vk={virtualKey}; error={Marshal.GetLastWin32Error()}");
+            AppLog.Write($"Hotkey registration failed. gesture={_settings.HotkeyGesture}; modifiers={gesture.Modifiers}; key={gesture.Key}; vk={virtualKey}; error={Marshal.GetLastWin32Error()}");
         }
     }
 
@@ -109,44 +104,6 @@ public sealed class HotKeyManager : IDisposable
         }
 
         return IntPtr.Zero;
-    }
-
-    private static bool TryParseGesture(string gesture, out uint modifiers, out Key key)
-    {
-        modifiers = 0;
-        key = Key.None;
-
-        if (string.IsNullOrWhiteSpace(gesture))
-        {
-            return false;
-        }
-
-        foreach (var part in gesture.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (string.Equals(part, "Ctrl", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(part, "Control", StringComparison.OrdinalIgnoreCase))
-            {
-                modifiers |= ModControl;
-            }
-            else if (string.Equals(part, "Alt", StringComparison.OrdinalIgnoreCase))
-            {
-                modifiers |= ModAlt;
-            }
-            else if (string.Equals(part, "Shift", StringComparison.OrdinalIgnoreCase))
-            {
-                modifiers |= ModShift;
-            }
-            else if (string.Equals(part, "Win", StringComparison.OrdinalIgnoreCase))
-            {
-                modifiers |= ModWin;
-            }
-            else if (Enum.TryParse(part, ignoreCase: true, out Key parsedKey))
-            {
-                key = parsedKey;
-            }
-        }
-
-        return key != Key.None && modifiers != 0;
     }
 
     public void Dispose()

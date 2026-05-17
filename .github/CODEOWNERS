@@ -1,0 +1,5 @@
+# Protect signing policy changes through code review.
+/.signpath/ @T-Chen-CN
+/.github/workflows/ @T-Chen-CN
+/scripts/ @T-Chen-CN
+/installer/ @T-Chen-CN

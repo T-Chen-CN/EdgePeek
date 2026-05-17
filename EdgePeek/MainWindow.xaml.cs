@@ -492,31 +492,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        var url = NormalizeUrl(input);
+        var url = UrlNormalizer.NormalizeAddress(input);
         AddressBox.Text = url;
         ActiveBrowser.Source = new Uri(url);
-    }
-
-    private static string NormalizeUrl(string input)
-    {
-        var value = input.Trim();
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "https://www.bing.com";
-        }
-
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
-            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-        {
-            return uri.ToString();
-        }
-
-        if (value.Contains('.') && !value.Contains(' '))
-        {
-            return $"https://{value}";
-        }
-
-        return $"https://www.bing.com/search?q={Uri.EscapeDataString(value)}";
     }
 
     private void UpdateNavButtons()
@@ -543,7 +521,7 @@ public partial class MainWindow : Window
 
     private async Task<BrowserTab> AddTabAsync(string url, bool activate)
     {
-        var normalizedUrl = NormalizeUrl(url);
+        var normalizedUrl = UrlNormalizer.NormalizeAddress(url);
         var tab = new BrowserTab(normalizedUrl)
         {
             Title = GetTitleFromUrl(normalizedUrl)

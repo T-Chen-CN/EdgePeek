@@ -2,6 +2,10 @@
 
 EdgePeek is a lightweight Windows-only slide-out browser prototype. It stays in the system tray, watches the screen edge, and slides a WebView2 browser panel into view when the cursor touches the configured hot edge.
 
+## License
+
+EdgePeek is open-source software licensed under the [MIT License](LICENSE).
+
 ## Current MVP
 
 - System tray entry
@@ -53,6 +57,43 @@ dotnet run
 
 The app starts hidden. Move the cursor to the configured screen edge or double-click the tray icon to show it.
 
+## Run Tests
+
+```powershell
+dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
+```
+
+## Build Release Artifacts
+
+Portable zip only:
+
+```powershell
+.\scripts\publish-release.ps1 -Version 0.1.0 -SkipInstaller
+```
+
+Portable zip plus an Inno Setup installer:
+
+```powershell
+.\scripts\publish-release.ps1 -Version 0.1.0
+```
+
+Signed release artifacts:
+
+```powershell
+.\scripts\publish-release.ps1 `
+  -Version 0.1.0 `
+  -CertificatePath C:\certs\publisher.pfx `
+  -CertificatePassword "<pfx-password>"
+```
+
+The script writes release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
+
+## Code Signing
+
+EdgePeek is prepared for SignPath Foundation open-source signing through GitHub Actions.
+
+See [CODE_SIGNING.md](CODE_SIGNING.md) for the signing policy, required repository variables, and release verification commands.
+
 ## Publish A Local Build
 
 Framework-dependent build:
@@ -94,5 +135,4 @@ If `settings.json` cannot be read, EdgePeek backs up the corrupt file as `settin
 
 - Improve multi-monitor behavior while the panel is already visible
 - Add a real app icon
-- Add an installer
-- Add automated tests for URL normalization, settings persistence, and hotkey parsing
+- Add automated tests for settings persistence and hotkey edge cases
