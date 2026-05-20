@@ -70,7 +70,7 @@ public sealed class FaviconService
             candidates.AddRange(await GetManifestIconCandidatesAsync(candidates, pageUri));
 
             foreach (var candidate in candidates
-                         .Where(candidate => !IsUnsupportedIcon(candidate.Href))
+                         .Where(IsImageIconCandidate)
                          .OrderByDescending(GetIconScore)
                          .ThenByDescending(candidate => candidate.MaxSize))
             {
@@ -110,7 +110,7 @@ public sealed class FaviconService
 
     private static async Task<List<IconCandidate>> GetManifestIconCandidatesAsync(IEnumerable<IconCandidate> candidates, Uri pageUri)
     {
-        var manifest = candidates.FirstOrDefault(candidate => candidate.Rel.Contains("manifest", StringComparison.OrdinalIgnoreCase));
+        var manifest = candidates.FirstOrDefault(IsManifestRel);
         if (manifest.Href is null)
         {
             return [];
@@ -193,6 +193,16 @@ public sealed class FaviconService
     {
         return rel.Contains("icon", StringComparison.OrdinalIgnoreCase) ||
                rel.Contains("manifest", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsImageIconCandidate(IconCandidate candidate)
+    {
+        return !IsManifestRel(candidate) && !IsUnsupportedIcon(candidate.Href);
+    }
+
+    private static bool IsManifestRel(IconCandidate candidate)
+    {
+        return candidate.Rel.Contains("manifest", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsUnsupportedIcon(string? href)

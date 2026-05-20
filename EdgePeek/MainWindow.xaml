@@ -65,12 +65,19 @@
 
       <Grid Grid.Column="1">
         <Grid.RowDefinitions>
+          <RowDefinition Height="6"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"/>
+          <RowDefinition Height="6"/>
         </Grid.RowDefinitions>
 
-        <Border x:Name="TopBar"
+        <Border x:Name="TopResizeGrip"
                 Grid.Row="0"
+                Background="{StaticResource ChromeBg}"
+                Cursor="SizeNS"
+                MouseLeftButtonDown="TopResizeGrip_MouseLeftButtonDown"/>
+        <Border x:Name="TopBar"
+                Grid.Row="1"
                 Height="38"
                 ClipToBounds="True"
                 Background="{StaticResource ChromeBg}"
@@ -114,26 +121,15 @@
           </Grid>
         </Border>
 
-        <Grid x:Name="BrowserHost" Grid.Row="1"/>
-        <Grid x:Name="SettingsHost" Grid.Row="1" Visibility="Collapsed"/>
-        <Border x:Name="TopResizeGrip"
-                Grid.RowSpan="2"
-                Height="6"
-                VerticalAlignment="Top"
-                Background="Transparent"
-                Cursor="SizeNS"
-                Panel.ZIndex="20"
-                MouseLeftButtonDown="TopResizeGrip_MouseLeftButtonDown"/>
+        <Grid x:Name="BrowserHost" Grid.Row="2"/>
+        <Grid x:Name="SettingsHost" Grid.Row="2" Visibility="Collapsed"/>
         <Border x:Name="BottomResizeGrip"
-                Grid.RowSpan="2"
-                Height="6"
-                VerticalAlignment="Bottom"
-                Background="Transparent"
+                Grid.Row="3"
+                Background="{StaticResource WindowBg}"
                 Cursor="SizeNS"
-                Panel.ZIndex="20"
                 MouseLeftButtonDown="BottomResizeGrip_MouseLeftButtonDown"/>
         <Border x:Name="UnsavedSettingsPrompt"
-                Grid.Row="1"
+                Grid.Row="2"
                 Background="{StaticResource SurfaceBg}"
                 BorderBrush="{StaticResource BorderSoft}"
                 BorderThickness="1"

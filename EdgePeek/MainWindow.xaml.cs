@@ -465,15 +465,15 @@ public partial class MainWindow : Window
 
     private void TopResizeGrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        BeginResize(WmszTop, e);
+        BeginNativeResize(WmszTop, e);
     }
 
     private void BottomResizeGrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        BeginResize(WmszBottom, e);
+        BeginNativeResize(WmszBottom, e);
     }
 
-    private void BeginResize(int edge, MouseButtonEventArgs e)
+    private void BeginNativeResize(int edge, MouseButtonEventArgs e)
     {
         if (ResizeMode == ResizeMode.NoResize || WindowState == WindowState.Maximized)
         {
@@ -481,8 +481,21 @@ public partial class MainWindow : Window
         }
 
         e.Handled = true;
+        _hideDelayTimer.Stop();
+        _autoHideCheckTimer.Stop();
+        _hotEdgeWatcher.Pause();
+        _windowAnimator.Stop();
+
         var helper = new WindowInteropHelper(this);
         SendMessage(helper.Handle, WmSysCommand, (IntPtr)(ScSize + edge), IntPtr.Zero);
+
+        _settings.PanelHeight = ClampPanelHeight(Height);
+        _settings.PanelTop = ClampPanelTop(Top, Height);
+        _settingsStore.Save(_settings);
+        if (_isShown)
+        {
+            _autoHideCheckTimer.Start();
+        }
     }
 
     private void TabRail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
