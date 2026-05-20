@@ -839,7 +839,16 @@ public partial class MainWindow : Window
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
-                tabContent = image;
+                tabContent = new Border
+                {
+                    Width = 30,
+                    Height = 30,
+                    CornerRadius = new CornerRadius(6),
+                    Background = selected ? System.Windows.Media.Brushes.Transparent : (System.Windows.Media.Brush)FindResource("SurfaceSoft"),
+                    BorderBrush = (System.Windows.Media.Brush)FindResource("BorderSoft"),
+                    BorderThickness = new Thickness(1),
+                    Child = image
+                };
             }
             else
             {
