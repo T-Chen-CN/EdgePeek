@@ -20,7 +20,7 @@ public partial class MainWindow : Window
     private const double DefaultPanelWidth = 460;
     private const double MaxPanelScreenRatio = 0.7;
     private const double TopBarHeight = 38;
-    private const double TabRailWidth = 48;
+    private const double TabRailWidth = 52;
 
     private readonly AppSettings _settings;
     private readonly SettingsStore _settingsStore;
@@ -803,9 +803,9 @@ public partial class MainWindow : Window
             var selected = ReferenceEquals(tab, _activeTab);
             var button = new System.Windows.Controls.Button
             {
-                Width = 40,
-                Height = 40,
-                Margin = new Thickness(0, 0, 0, 5),
+                Width = 44,
+                Height = 42,
+                Margin = new Thickness(0, 0, 0, 2),
                 Padding = new Thickness(0),
                 Tag = tab,
                 Background = selected ? (System.Windows.Media.Brush)FindResource("SurfaceBg") : System.Windows.Media.Brushes.Transparent,
@@ -818,7 +818,7 @@ public partial class MainWindow : Window
 
             var indicator = new Border
             {
-                Width = 18,
+                Width = 22,
                 Height = 2,
                 CornerRadius = new CornerRadius(2),
                 Background = selected ? (System.Windows.Media.Brush)FindResource("AccentBrush") : System.Windows.Media.Brushes.Transparent,
@@ -833,8 +833,8 @@ public partial class MainWindow : Window
                 var image = new System.Windows.Controls.Image
                 {
                     Source = tab.Favicon,
-                    Width = 20,
-                    Height = 20,
+                    Width = 24,
+                    Height = 24,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -848,7 +848,7 @@ public partial class MainWindow : Window
                     Text = GetTabInitial(tab.Title),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
-                    FontSize = 15,
+                    FontSize = 17,
                     FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal,
                     Foreground = selected ? (System.Windows.Media.Brush)FindResource("TextMain") : (System.Windows.Media.Brush)FindResource("TextMuted")
                 };
