@@ -1,11 +1,13 @@
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using EdgePeek.Localization;
 using EdgePeek.Services;
@@ -15,6 +17,10 @@ namespace EdgePeek;
 
 public partial class MainWindow : Window
 {
+    private const int WmSysCommand = 0x0112;
+    private const int ScSize = 0xF000;
+    private const int WmszTop = 3;
+    private const int WmszBottom = 6;
     private const double ResizeHitSlop = 12;
     private const double MinPanelWidth = 320;
     private const double DefaultPanelWidth = 460;
@@ -455,6 +461,28 @@ public partial class MainWindow : Window
     private void HideButton_Click(object sender, RoutedEventArgs e)
     {
         HidePanel();
+    }
+
+    private void TopResizeGrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        BeginResize(WmszTop, e);
+    }
+
+    private void BottomResizeGrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        BeginResize(WmszBottom, e);
+    }
+
+    private void BeginResize(int edge, MouseButtonEventArgs e)
+    {
+        if (ResizeMode == ResizeMode.NoResize || WindowState == WindowState.Maximized)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        var helper = new WindowInteropHelper(this);
+        SendMessage(helper.Handle, WmSysCommand, (IntPtr)(ScSize + edge), IntPtr.Zero);
     }
 
     private void TabRail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1283,4 +1311,7 @@ public partial class MainWindow : Window
         var dpi = VisualTreeHelper.GetDpi(this);
         return new System.Windows.Point(screenPoint.X / dpi.DpiScaleX, screenPoint.Y / dpi.DpiScaleY);
     }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 }

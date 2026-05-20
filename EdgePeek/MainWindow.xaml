@@ -116,6 +116,22 @@
 
         <Grid x:Name="BrowserHost" Grid.Row="1"/>
         <Grid x:Name="SettingsHost" Grid.Row="1" Visibility="Collapsed"/>
+        <Border x:Name="TopResizeGrip"
+                Grid.RowSpan="2"
+                Height="6"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                Cursor="SizeNS"
+                Panel.ZIndex="20"
+                MouseLeftButtonDown="TopResizeGrip_MouseLeftButtonDown"/>
+        <Border x:Name="BottomResizeGrip"
+                Grid.RowSpan="2"
+                Height="6"
+                VerticalAlignment="Bottom"
+                Background="Transparent"
+                Cursor="SizeNS"
+                Panel.ZIndex="20"
+                MouseLeftButtonDown="BottomResizeGrip_MouseLeftButtonDown"/>
         <Border x:Name="UnsavedSettingsPrompt"
                 Grid.Row="1"
                 Background="{StaticResource SurfaceBg}"
