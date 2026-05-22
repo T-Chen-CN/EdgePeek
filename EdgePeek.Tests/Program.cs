@@ -21,6 +21,7 @@ var tests = new (string Name, Action Body)[]
     ("hot edge rejects outside trigger thickness", HotEdgeRejectsOutsideTriggerThickness),
     ("settings store saves and loads", SettingsStoreSavesAndLoads),
     ("settings store backs up corrupt settings", SettingsStoreBacksUpCorruptSettings),
+    ("app paths expose data children", AppPathsExposeDataChildren),
 };
 
 var failed = 0;
@@ -123,6 +124,14 @@ static void SettingsStoreBacksUpCorruptSettings()
 
     Equal(UrlNormalizer.DefaultUrl, loaded.HomeUrl);
     Equal(1, System.IO.Directory.GetFiles(folder.Path, "settings.corrupt-*.json").Length);
+}
+
+static void AppPathsExposeDataChildren()
+{
+    True(AppPaths.SettingsPath.StartsWith(AppPaths.DataFolder, StringComparison.OrdinalIgnoreCase));
+    True(AppPaths.LogPath.StartsWith(AppPaths.DataFolder, StringComparison.OrdinalIgnoreCase));
+    True(AppPaths.WebView2Folder.StartsWith(AppPaths.DataFolder, StringComparison.OrdinalIgnoreCase));
+    True(System.IO.Directory.Exists(AppPaths.DataFolder));
 }
 
 static void Equal<T>(T expected, T actual)

@@ -15,10 +15,7 @@ public sealed class WebViewEnvironmentFactory
 
     private static Task<CoreWebView2Environment> CreateAsync()
     {
-        var userDataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "EdgePeek",
-            "WebView2");
+        var userDataFolder = AppPaths.WebView2Folder;
         Directory.CreateDirectory(userDataFolder);
 
         var options = new CoreWebView2EnvironmentOptions

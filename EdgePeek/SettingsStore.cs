@@ -14,15 +14,24 @@ public sealed class SettingsStore
     };
 
     public SettingsStore()
-        : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EdgePeek"))
+        : this(AppPaths.DataFolder, migrateLegacySettings: true)
     {
     }
 
     public SettingsStore(string settingsFolder)
+        : this(settingsFolder, migrateLegacySettings: false)
+    {
+    }
+
+    private SettingsStore(string settingsFolder, bool migrateLegacySettings)
     {
         Directory.CreateDirectory(settingsFolder);
         _settingsFolder = settingsFolder;
         _settingsPath = Path.Combine(settingsFolder, "settings.json");
+        if (migrateLegacySettings)
+        {
+            TryMigrateLegacySettings();
+        }
     }
 
     public AppSettings Load()
@@ -110,6 +119,25 @@ public sealed class SettingsStore
         {
             AppLog.Write("Failed to back up corrupt settings file.");
             AppLog.Write(backupEx);
+        }
+    }
+
+    private void TryMigrateLegacySettings()
+    {
+        try
+        {
+            if (File.Exists(_settingsPath) || !File.Exists(AppPaths.LegacySettingsPath))
+            {
+                return;
+            }
+
+            File.Copy(AppPaths.LegacySettingsPath, _settingsPath, overwrite: false);
+            AppLog.Write($"Migrated settings from {AppPaths.LegacySettingsPath} to {_settingsPath}.");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write("Failed to migrate legacy settings.");
+            AppLog.Write(ex);
         }
     }
 }

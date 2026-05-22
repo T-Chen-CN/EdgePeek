@@ -20,7 +20,7 @@ EdgePeek is open-source software licensed under the [MIT License](LICENSE).
 - Optional start with Windows
 - New windows open in the same panel
 - Last URL, tabs, panel size, language, and behavior settings are saved under `%APPDATA%\EdgePeek\settings.json`
-- WebView2 profile data is stored under `%LOCALAPPDATA%\EdgePeek\WebView2` so build output stays clean
+- Settings, logs, and WebView2 profile data are stored under the app `Data` folder when possible
 - Tab icons are loaded from WebView2 or favicon URLs declared by the current page; no third-party favicon lookup service is used
 
 ## Requirements
@@ -90,6 +90,8 @@ Signed release artifacts:
 
 The script writes release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
 
+The installer defaults to `D:\Program Files\EdgePeek` when a D: drive exists. If D: is not available, it falls back to `%LOCALAPPDATA%\Programs\EdgePeek`. During uninstall, users can choose whether to remove EdgePeek user data.
+
 ## Code Signing
 
 EdgePeek is prepared for SignPath Foundation open-source signing through GitHub Actions.
@@ -126,10 +128,13 @@ The repository intentionally ignores build output, local IDE state, runtime logs
 - `*.WebView2/`, `EdgePeek.exe.WebView2/`
 - `checkpoints/`, `tmp-checkpoint-compare/`
 
-Runtime user data lives outside the repository:
+Runtime user data lives outside the repository and is stored beside the app when possible:
 
-- Settings: `%APPDATA%\EdgePeek\settings.json`
-- WebView2 profile/cache: `%LOCALAPPDATA%\EdgePeek\WebView2`
+- Settings: `<AppDir>\Data\settings.json`
+- Logs: `<AppDir>\Data\edgepeek.log`
+- WebView2 profile/cache: `<AppDir>\Data\WebView2`
+
+If `<AppDir>\Data` is not writable, EdgePeek falls back to `%LOCALAPPDATA%\EdgePeek\Data`. On first launch after upgrading, existing settings from `%APPDATA%\EdgePeek\settings.json` are copied into the new data folder if no new settings file exists.
 
 If `settings.json` cannot be read, EdgePeek backs up the corrupt file as `settings.corrupt-yyyyMMdd-HHmmss.json` before falling back to defaults.
 

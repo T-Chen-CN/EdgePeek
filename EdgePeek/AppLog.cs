@@ -11,7 +11,7 @@ public static class AppLog
     {
         get
         {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EdgePeek");
+            var folder = AppPaths.DataFolder;
             Directory.CreateDirectory(folder);
             return Path.Combine(folder, "edgepeek.log");
         }

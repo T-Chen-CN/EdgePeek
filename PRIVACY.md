@@ -7,20 +7,22 @@ EdgePeek is a local Windows desktop application.
 EdgePeek stores settings under:
 
 ```text
-%APPDATA%\EdgePeek\settings.json
+<AppDir>\Data\settings.json
 ```
 
 WebView2 browser profile data is stored under:
 
 ```text
-%LOCALAPPDATA%\EdgePeek\WebView2
+<AppDir>\Data\WebView2
 ```
 
 Application logs are stored under:
 
 ```text
-%APPDATA%\EdgePeek\edgepeek.log
+<AppDir>\Data\edgepeek.log
 ```
+
+If `<AppDir>\Data` is not writable, EdgePeek falls back to `%LOCALAPPDATA%\EdgePeek\Data`. During uninstall, users can choose whether to remove EdgePeek user data.
 
 ## Network Access
 
