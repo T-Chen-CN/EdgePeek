@@ -46,13 +46,13 @@ The workflow uses the default SignPath artifact configuration. If SignPath assig
 Windows users can verify signed files with:
 
 ```powershell
-Get-AuthenticodeSignature .\EdgePeekSetup-0.1.1-win-x64.exe
+Get-AuthenticodeSignature .\EdgePeekSetup-0.1.2-win-x64.exe
 ```
 
 or:
 
 ```powershell
-signtool verify /pa /v .\EdgePeekSetup-0.1.1-win-x64.exe
+signtool verify /pa /v .\EdgePeekSetup-0.1.2-win-x64.exe
 ```
 
 Unsigned local development builds are expected to show `UnknownError` or `NotSigned`.
