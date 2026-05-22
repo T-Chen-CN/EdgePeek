@@ -1,9 +1,9 @@
 #ifndef AppVersion
-#define AppVersion "0.1.2"
+#define AppVersion "0.1.3"
 #endif
 
 #ifndef SourceDir
-#define SourceDir "..\artifacts\publish\EdgePeek-0.1.2-win-x64"
+#define SourceDir "..\artifacts\publish\EdgePeek-0.1.3-win-x64"
 #endif
 
 #ifndef OutputDir
@@ -44,7 +44,7 @@ Name: "{group}\EdgePeek"; Filename: "{app}\EdgePeek.exe"
 Name: "{autodesktop}\EdgePeek"; Filename: "{app}\EdgePeek.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\EdgePeek.exe"; Description: "Launch EdgePeek"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\EdgePeek.exe"; Parameters: "--show"; Description: "Launch EdgePeek"; Flags: nowait postinstall skipifsilent
 
 [Code]
 function GetDefaultInstallDir(Param: String): String;

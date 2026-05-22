@@ -60,8 +60,8 @@ dotnet restore
 dotnet run
 ```
 
-EdgePeek starts hidden by default. Move the cursor to the configured screen edge, use the global hotkey, or double-click the tray icon to show it.
-The startup behavior can be changed in Settings. To force a one-off visible launch, run `EdgePeek.exe --show`.
+EdgePeek shows its panel by default when it starts. The startup behavior can be changed in Settings.
+To force a one-off visible launch, run `EdgePeek.exe --show`.
 
 ## Run Tests
 
@@ -74,20 +74,20 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.2 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.3 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.2
+.\scripts\publish-release.ps1 -Version 0.1.3
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.2 `
+  -Version 0.1.3 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```

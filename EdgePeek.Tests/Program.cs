@@ -19,6 +19,7 @@ var tests = new (string Name, Action Body)[]
     ("hot edge accepts matching panel range", HotEdgeAcceptsMatchingPanelRange),
     ("hot edge accepts left edge", HotEdgeAcceptsLeftEdge),
     ("hot edge rejects outside trigger thickness", HotEdgeRejectsOutsideTriggerThickness),
+    ("settings show panel on startup by default", () => True(new AppSettings().ShowOnStartup)),
     ("settings store saves and loads", SettingsStoreSavesAndLoads),
     ("settings store backs up corrupt settings", SettingsStoreBacksUpCorruptSettings),
     ("app paths expose data children", AppPathsExposeDataChildren),
