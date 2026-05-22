@@ -9,6 +9,7 @@ namespace EdgePeek.Services;
 
 public sealed class FaviconService
 {
+    private const int MaxIconBytes = 512 * 1024;
     private static readonly HttpClient Client = new()
     {
         Timeout = TimeSpan.FromSeconds(4)
@@ -28,11 +29,13 @@ public sealed class FaviconService
                 return null;
             }
 
-            using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
-            var webViewBytes = memory.ToArray();
+            var webViewBytes = await ReadLimitedAsync(stream);
+            if (webViewBytes is null)
+            {
+                return null;
+            }
+
             var bytes = await TryGetPageIconAsync(webView, url)
-                        ?? await TryGetHighResolutionFaviconAsync(url)
                         ?? webViewBytes;
 
             var image = new BitmapImage();
@@ -142,26 +145,6 @@ public sealed class FaviconService
         }
     }
 
-    private static async Task<byte[]?> TryGetHighResolutionFaviconAsync(string url)
-    {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || string.IsNullOrWhiteSpace(uri.Host))
-        {
-            return null;
-        }
-
-        try
-        {
-            var request = $"https://www.google.com/s2/favicons?domain={Uri.EscapeDataString(uri.Host)}&sz=64";
-            var bytes = await Client.GetByteArrayAsync(request);
-            return bytes.Length > 0 ? bytes : null;
-        }
-        catch (Exception ex)
-        {
-            AppLog.Write(ex);
-            return null;
-        }
-    }
-
     private static async Task<byte[]?> TryDownloadIconAsync(string? href)
     {
         if (string.IsNullOrWhiteSpace(href))
@@ -179,13 +162,40 @@ public sealed class FaviconService
                 return null;
             }
 
-            var bytes = await response.Content.ReadAsByteArrayAsync();
-            return bytes.Length > 0 ? bytes : null;
+            if (response.Content.Headers.ContentLength > MaxIconBytes)
+            {
+                return null;
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            return await ReadLimitedAsync(stream);
         }
         catch (Exception ex)
         {
             AppLog.Write(ex);
             return null;
+        }
+    }
+
+    private static async Task<byte[]?> ReadLimitedAsync(Stream stream)
+    {
+        using var memory = new MemoryStream();
+        var buffer = new byte[16 * 1024];
+
+        while (true)
+        {
+            var read = await stream.ReadAsync(buffer);
+            if (read == 0)
+            {
+                return memory.Length > 0 ? memory.ToArray() : null;
+            }
+
+            if (memory.Length + read > MaxIconBytes)
+            {
+                return null;
+            }
+
+            memory.Write(buffer, 0, read);
         }
     }
 

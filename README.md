@@ -21,6 +21,7 @@ EdgePeek is open-source software licensed under the [MIT License](LICENSE).
 - New windows open in the same panel
 - Last URL, tabs, panel size, language, and behavior settings are saved under `%APPDATA%\EdgePeek\settings.json`
 - WebView2 profile data is stored under `%LOCALAPPDATA%\EdgePeek\WebView2` so build output stays clean
+- Tab icons are loaded from WebView2 or favicon URLs declared by the current page; no third-party favicon lookup service is used
 
 ## Requirements
 
@@ -69,20 +70,20 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.0 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.1 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.0
+.\scripts\publish-release.ps1 -Version 0.1.1
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.0 `
+  -Version 0.1.1 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```
@@ -135,5 +136,5 @@ If `settings.json` cannot be read, EdgePeek backs up the corrupt file as `settin
 ## Next Steps
 
 - Improve multi-monitor behavior while the panel is already visible
-- Add a real app icon
-- Add automated tests for settings persistence and hotkey edge cases
+- Split browser tab, window placement, and settings coordination out of `MainWindow.xaml.cs`
+- Expand automated coverage around WebView2 event handling and window placement edge cases

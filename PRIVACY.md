@@ -28,6 +28,8 @@ EdgePeek embeds Microsoft Edge WebView2. Pages loaded inside the browser panel m
 
 EdgePeek itself does not run analytics, telemetry, advertising, or background upload services.
 
+For tab icons, EdgePeek may read favicon metadata from the currently loaded page and download the icon URL declared by that page. EdgePeek does not use a third-party favicon lookup service.
+
 ## Third-Party Runtime
 
 The app depends on Microsoft Edge WebView2 Runtime. Browser data and web compatibility behavior are provided by WebView2.

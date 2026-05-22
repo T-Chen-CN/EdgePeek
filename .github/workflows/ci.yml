@@ -25,10 +25,10 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore
-        run: dotnet restore EdgePeek\EdgePeek.csproj
+        run: dotnet restore EdgePeek.Tests\EdgePeek.Tests.csproj
 
       - name: Build
-        run: dotnet build EdgePeek\EdgePeek.csproj --configuration Release --no-restore
+        run: dotnet build EdgePeek.Tests\EdgePeek.Tests.csproj --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj --configuration Release
+        run: dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj --configuration Release --no-build

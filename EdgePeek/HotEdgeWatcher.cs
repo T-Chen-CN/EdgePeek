@@ -49,7 +49,7 @@ public sealed class HotEdgeWatcher
 
         var cursor = Cursor.Position;
         var screen = Screen.FromPoint(cursor);
-        var bounds = screen.Bounds;
+        var bounds = screen.WorkingArea;
         var hotZoneBounds = _hotZoneBoundsProvider?.Invoke(bounds) ?? bounds;
 
         if (!IsInHotZone(cursor, bounds, hotZoneBounds, _settings.Edge, _settings.TriggerThickness))

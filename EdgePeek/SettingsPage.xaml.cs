@@ -68,6 +68,12 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
             return false;
         }
 
+        if (HotkeyBox.IsChecked == true && !HotkeyGestureParser.TryParse(HotkeyGestureBox.Text, out _))
+        {
+            ShowValidation(Strings.HotkeyValidation(zh));
+            return false;
+        }
+
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         _settings.Language = Strings.IsChinese(selectedLanguage) ? "zh-CN" : "en";
         _settings.TriggerThickness = triggerThickness;

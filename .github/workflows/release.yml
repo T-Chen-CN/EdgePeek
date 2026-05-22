@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version, for example 0.1.0
+        description: Release version, for example 0.1.1
         required: true
         type: string
   push:
@@ -46,6 +46,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run tests
+        run: dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj --configuration Release
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y

@@ -5,6 +5,7 @@ namespace EdgePeek;
 
 public sealed class SettingsStore
 {
+    private readonly object _saveGate = new();
     private readonly string _settingsPath;
     private readonly string _settingsFolder;
     private readonly JsonSerializerOptions _jsonOptions = new()
@@ -13,12 +14,15 @@ public sealed class SettingsStore
     };
 
     public SettingsStore()
+        : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EdgePeek"))
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, "EdgePeek");
-        Directory.CreateDirectory(folder);
-        _settingsFolder = folder;
-        _settingsPath = Path.Combine(folder, "settings.json");
+    }
+
+    public SettingsStore(string settingsFolder)
+    {
+        Directory.CreateDirectory(settingsFolder);
+        _settingsFolder = settingsFolder;
+        _settingsPath = Path.Combine(settingsFolder, "settings.json");
     }
 
     public AppSettings Load()
@@ -42,19 +46,51 @@ public sealed class SettingsStore
         }
     }
 
-    public void Save(AppSettings settings)
+    public bool Save(AppSettings settings)
     {
-        var json = JsonSerializer.Serialize(settings, _jsonOptions);
-        var tempPath = Path.Combine(_settingsFolder, $"settings.{Environment.ProcessId}.tmp");
-        File.WriteAllText(tempPath, json);
+        lock (_saveGate)
+        {
+            var json = JsonSerializer.Serialize(settings, _jsonOptions);
+            var tempPath = Path.Combine(_settingsFolder, $"settings.{Environment.ProcessId}.tmp");
 
-        if (File.Exists(_settingsPath))
-        {
-            File.Replace(tempPath, _settingsPath, destinationBackupFileName: null);
+            try
+            {
+                File.WriteAllText(tempPath, json);
+
+                if (File.Exists(_settingsPath))
+                {
+                    File.Replace(tempPath, _settingsPath, destinationBackupFileName: null);
+                }
+                else
+                {
+                    File.Move(tempPath, _settingsPath);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Write("Settings save failed.");
+                AppLog.Write(ex);
+                TryDeleteTempFile(tempPath);
+                return false;
+            }
         }
-        else
+    }
+
+    private static void TryDeleteTempFile(string tempPath)
+    {
+        try
         {
-            File.Move(tempPath, _settingsPath);
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write("Failed to delete temporary settings file.");
+            AppLog.Write(ex);
         }
     }
 

@@ -15,6 +15,7 @@ public static class HotkeyGestureParser
     {
         var modifiers = 0u;
         var key = Key.None;
+        var keySeen = false;
 
         if (string.IsNullOrWhiteSpace(gesture))
         {
@@ -43,7 +44,19 @@ public static class HotkeyGestureParser
             }
             else if (Enum.TryParse(part, ignoreCase: true, out Key parsedKey))
             {
+                if (keySeen || parsedKey == Key.None || IsModifierKey(parsedKey))
+                {
+                    parsed = default;
+                    return false;
+                }
+
                 key = parsedKey;
+                keySeen = true;
+            }
+            else
+            {
+                parsed = default;
+                return false;
             }
         }
 
@@ -53,7 +66,7 @@ public static class HotkeyGestureParser
 
     public static string? Build(ModifierKeys modifiers, Key key)
     {
-        if (modifiers == ModifierKeys.None || key == Key.None)
+        if (modifiers == ModifierKeys.None || key == Key.None || IsModifierKey(key))
         {
             return null;
         }
@@ -65,5 +78,13 @@ public static class HotkeyGestureParser
         if (modifiers.HasFlag(ModifierKeys.Windows)) parts.Add("Win");
         parts.Add(key.ToString());
         return string.Join("+", parts);
+    }
+
+    private static bool IsModifierKey(Key key)
+    {
+        return key is Key.LeftCtrl or Key.RightCtrl or
+            Key.LeftAlt or Key.RightAlt or
+            Key.LeftShift or Key.RightShift or
+            Key.LWin or Key.RWin;
     }
 }
