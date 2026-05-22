@@ -19,17 +19,21 @@ EdgePeek is open-source software licensed under the [MIT License](LICENSE).
 - Optional Ctrl+Alt+Space global hotkey
 - Optional start with Windows
 - New windows open in the same panel
-- Last URL, tabs, panel size, language, and behavior settings are saved under `%APPDATA%\EdgePeek\settings.json`
+- Last URL, tabs, panel size, language, and behavior settings are saved under the EdgePeek data folder
 - Settings, logs, and WebView2 profile data are stored under the app `Data` folder when possible
 - Tab icons are loaded from WebView2 or favicon URLs declared by the current page; no third-party favicon lookup service is used
 
-## Requirements
+## Source Requirements
 
 - Windows 10/11
 - .NET 8 SDK
 - Microsoft Edge WebView2 Runtime
 
 Most Windows 11 systems already include WebView2 Runtime. If it is missing, install the Evergreen Runtime from Microsoft.
+
+## Installer Runtime Behavior
+
+Release builds are self-contained and include the .NET runtime needed by EdgePeek. The installer checks for Microsoft Edge WebView2 Runtime. If WebView2 Runtime is missing, the installer runs the bundled Microsoft Evergreen Bootstrapper to install it. That WebView2 installation step requires internet access to Microsoft download services.
 
 ## Install Dependencies
 
@@ -88,7 +92,7 @@ Signed release artifacts:
   -CertificatePassword "<pfx-password>"
 ```
 
-The script writes release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
+The script writes self-contained release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
 
 The installer defaults to `D:\Program Files\EdgePeek` when a D: drive exists. If D: is not available, it falls back to `%LOCALAPPDATA%\Programs\EdgePeek`. During uninstall, users can choose whether to remove EdgePeek user data.
 
@@ -100,14 +104,14 @@ See [CODE_SIGNING.md](CODE_SIGNING.md) for the signing policy, required reposito
 
 ## Publish A Local Build
 
-Framework-dependent build:
+Framework-dependent build for development experiments:
 
 ```powershell
 cd EdgePeek
 dotnet publish -c Release -r win-x64 --self-contained false
 ```
 
-Self-contained build, larger but does not require the .NET runtime to be installed:
+Self-contained build, matching the release script behavior:
 
 ```powershell
 cd EdgePeek

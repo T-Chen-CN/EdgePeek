@@ -32,6 +32,8 @@ EdgePeek itself does not run analytics, telemetry, advertising, or background up
 
 For tab icons, EdgePeek may read favicon metadata from the currently loaded page and download the icon URL declared by that page. EdgePeek does not use a third-party favicon lookup service.
 
+If WebView2 Runtime is missing during setup, the installer runs Microsoft's Evergreen Bootstrapper. That dependency installation contacts Microsoft download services.
+
 ## Third-Party Runtime
 
 The app depends on Microsoft Edge WebView2 Runtime. Browser data and web compatibility behavior are provided by WebView2.

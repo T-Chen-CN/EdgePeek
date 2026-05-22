@@ -191,7 +191,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             AppLog.Write(ex);
-            System.Windows.MessageBox.Show(this, ex.Message, "WebView2 failed to start", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowWebView2StartupError(ex);
         }
     }
 
@@ -346,6 +346,17 @@ public partial class MainWindow : Window
     private void HideButton_Click(object sender, RoutedEventArgs e)
     {
         HidePanel();
+    }
+
+    private void ShowWebView2StartupError(Exception exception)
+    {
+        var message = "Microsoft Edge WebView2 Runtime is required to run EdgePeek. Please install WebView2 Runtime and restart EdgePeek.";
+        if (!string.IsNullOrWhiteSpace(exception.Message))
+        {
+            message += $"{Environment.NewLine}{Environment.NewLine}Details: {exception.Message}";
+        }
+
+        System.Windows.MessageBox.Show(this, message, "WebView2 Runtime required", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
 }

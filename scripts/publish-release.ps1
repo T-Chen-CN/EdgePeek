@@ -3,6 +3,7 @@ param(
     [string]$Runtime = "win-x64",
     [string]$Version = "0.1.1",
     [switch]$SelfContained,
+    [switch]$FrameworkDependent,
     [switch]$SkipInstaller,
     [string]$CertificatePath,
     [string]$CertificatePassword,
@@ -129,7 +130,7 @@ if (Test-Path $installerPath) {
     Remove-Item -LiteralPath $installerPath -Force
 }
 
-$selfContainedValue = if ($SelfContained) { "true" } else { "false" }
+$selfContainedValue = if ($FrameworkDependent) { "false" } else { "true" }
 $publishArguments = @(
     "publish", $projectPath,
     "-c", $Configuration,

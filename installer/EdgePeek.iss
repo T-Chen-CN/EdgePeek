@@ -37,6 +37,7 @@ Name: "{app}\Data"; Permissions: users-modify
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "redist\MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
 Name: "{group}\EdgePeek"; Filename: "{app}\EdgePeek.exe"
@@ -68,4 +69,46 @@ begin
 
   FallbackDataDir := ExpandConstant('{localappdata}\EdgePeek\Data');
   DelTree(FallbackDataDir, True, True, True);
+end;
+
+function IsUsableVersion(Version: String): Boolean;
+begin
+  Result := (Version <> '') and (Version <> '0.0.0.0');
+end;
+
+function IsWebView2Installed(): Boolean;
+var
+  Version: String;
+begin
+  Result :=
+    (RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and IsUsableVersion(Version)) or
+    (RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and IsUsableVersion(Version)) or
+    (RegQueryStringValue(HKCU, 'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and IsUsableVersion(Version));
+end;
+
+procedure InstallWebView2Runtime();
+var
+  ResultCode: Integer;
+begin
+  if IsWebView2Installed() then
+    Exit;
+
+  MsgBox('EdgePeek requires Microsoft Edge WebView2 Runtime. It will now be installed. This step requires internet access.', mbInformation, MB_OK);
+
+  if not Exec(ExpandConstant('{tmp}\MicrosoftEdgeWebview2Setup.exe'), '/silent /install', '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+  begin
+    MsgBox('Microsoft Edge WebView2 Runtime could not be started. Please install it manually from Microsoft, then restart EdgePeek.', mbError, MB_OK);
+    Exit;
+  end;
+
+  if (ResultCode <> 0) and not IsWebView2Installed() then
+  begin
+    MsgBox('Microsoft Edge WebView2 Runtime could not be installed. Please install it manually from Microsoft, then restart EdgePeek.', mbError, MB_OK);
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+    InstallWebView2Runtime();
 end;

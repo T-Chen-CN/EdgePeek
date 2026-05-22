@@ -72,7 +72,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             AppLog.Write(ex);
-            System.Windows.MessageBox.Show(this, ex.Message, "WebView2 failed to start", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowWebView2StartupError(ex);
         }
 
         if (activate)
