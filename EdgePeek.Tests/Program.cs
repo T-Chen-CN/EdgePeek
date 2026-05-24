@@ -102,6 +102,7 @@ static void SettingsStoreSavesAndLoads()
         HomeUrl = "https://example.com",
         LastUrl = "https://example.org",
         TabUrls = ["https://example.com", "https://example.org"],
+        TabViewModes = [BrowserViewMode.Desktop, BrowserViewMode.Mobile],
         ActiveTabIndex = 1
     };
 
@@ -112,6 +113,8 @@ static void SettingsStoreSavesAndLoads()
     Equal("https://example.com", loaded.HomeUrl);
     Equal("https://example.org", loaded.LastUrl);
     Equal(2, loaded.TabUrls.Count);
+    Equal(2, loaded.TabViewModes.Count);
+    Equal(BrowserViewMode.Mobile, loaded.TabViewModes[1]);
     Equal(1, loaded.ActiveTabIndex);
 }
 

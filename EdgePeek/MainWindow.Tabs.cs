@@ -5,9 +5,15 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using EdgePeek.Services;
+
 namespace EdgePeek;
+
 public partial class MainWindow
 {
+    private const string DesktopViewModeIcon = "\uE977";
+    private const string MobileViewModeIcon = "\uE8EA";
+    private const string MobileUserAgent = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
+
     private void AddressBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
@@ -19,14 +25,14 @@ public partial class MainWindow
 
     private void NavigateTo(string input)
     {
-        if (ActiveBrowser is null)
+        if (_activeTab is null)
         {
             return;
         }
 
         var url = UrlNormalizer.NormalizeAddress(input);
         AddressBox.Text = url;
-        ActiveBrowser.Source = new Uri(url);
+        NavigateTab(_activeTab, url);
     }
 
     private void UpdateNavButtons()
@@ -47,16 +53,23 @@ public partial class MainWindow
 
         for (var index = 0; index < urls.Count; index++)
         {
-            AddTabAsync(urls[index], activate: index == activeIndex).Forget("Restore tab");
+            var mode = index < _settings.TabViewModes.Count ? _settings.TabViewModes[index] : BrowserViewMode.Desktop;
+            AddTabAsync(urls[index], activate: index == activeIndex, mode).Forget("Restore tab");
         }
     }
 
-    private async Task<BrowserTab> AddTabAsync(string url, bool activate)
+    private Task<BrowserTab> AddTabAsync(string url, bool activate)
+    {
+        return AddTabAsync(url, activate, BrowserViewMode.Desktop);
+    }
+
+    private async Task<BrowserTab> AddTabAsync(string url, bool activate, BrowserViewMode mode)
     {
         var normalizedUrl = UrlNormalizer.NormalizeAddress(url);
         var tab = new BrowserTab(normalizedUrl)
         {
-            Title = GetTitleFromUrl(normalizedUrl)
+            Title = GetTitleFromUrl(normalizedUrl),
+            ViewMode = mode
         };
 
         _tabs.Add(tab);
@@ -67,7 +80,8 @@ public partial class MainWindow
         try
         {
             await tab.Browser.EnsureCoreWebView2Async(await _webViewEnvironmentFactory.GetAsync());
-            tab.Browser.Source = new Uri(normalizedUrl);
+            await ApplyViewModeAsync(tab);
+            NavigateTab(tab, normalizedUrl);
         }
         catch (Exception ex)
         {
@@ -127,6 +141,7 @@ public partial class MainWindow
             tab.Browser.CoreWebView2
                 .AddScriptToExecuteOnDocumentCreatedAsync(BrowserEnhancementScriptProvider.Script)
                 .Forget("Register browser enhancement script");
+            ApplyViewModeAsync(tab).Forget("Apply view mode");
             InjectBrowserEnhancementScript(tab);
 
             tab.Browser.CoreWebView2.DocumentTitleChanged += (_, _) =>
@@ -141,6 +156,117 @@ public partial class MainWindow
 
             tab.Browser.CoreWebView2.FaviconChanged += (_, _) => UpdateFaviconAsync(tab).Forget("Update favicon");
         };
+    }
+
+    private void ViewModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_activeTab is null)
+        {
+            return;
+        }
+
+        TryCloseSettingsPage(() => ToggleActiveViewModeAsync().Forget("Toggle view mode"));
+    }
+
+    private async Task ToggleActiveViewModeAsync()
+    {
+        if (_activeTab is null)
+        {
+            return;
+        }
+
+        _activeTab.ViewMode = _activeTab.ViewMode == BrowserViewMode.Mobile
+            ? BrowserViewMode.Desktop
+            : BrowserViewMode.Mobile;
+        UpdateViewModeButton();
+        SaveTabs();
+
+        await ApplyViewModeAsync(_activeTab);
+        _activeTab.Browser.Reload();
+    }
+
+    private async Task ApplyViewModeAsync(BrowserTab tab)
+    {
+        if (tab.Browser.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (tab.ViewMode == BrowserViewMode.Mobile)
+            {
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setUserAgentOverride",
+                    """
+                    {
+                      "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36",
+                      "platform": "Android",
+                      "userAgentMetadata": {
+                        "brands": [
+                          { "brand": "Chromium", "version": "125" },
+                          { "brand": "Google Chrome", "version": "125" },
+                          { "brand": "Not.A/Brand", "version": "24" }
+                        ],
+                        "fullVersionList": [
+                          { "brand": "Chromium", "version": "125.0.0.0" },
+                          { "brand": "Google Chrome", "version": "125.0.0.0" },
+                          { "brand": "Not.A/Brand", "version": "24.0.0.0" }
+                        ],
+                        "platform": "Android",
+                        "platformVersion": "14.0.0",
+                        "architecture": "",
+                        "model": "Pixel 8",
+                        "mobile": true
+                      }
+                    }
+                    """);
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setDeviceMetricsOverride",
+                    """
+                    {
+                      "width": 390,
+                      "height": 844,
+                      "deviceScaleFactor": 3,
+                      "mobile": true,
+                      "screenOrientation": {
+                        "type": "portraitPrimary",
+                        "angle": 0
+                      }
+                    }
+                    """);
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setTouchEmulationEnabled",
+                    """{ "enabled": true, "maxTouchPoints": 5 }""");
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setEmitTouchEventsForMouse",
+                    """{ "enabled": true, "configuration": "mobile" }""");
+            }
+            else
+            {
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Emulation.clearDeviceMetricsOverride", "{}");
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setTouchEmulationEnabled",
+                    """{ "enabled": false }""");
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setEmitTouchEventsForMouse",
+                    """{ "enabled": false }""");
+                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                    "Emulation.setUserAgentOverride",
+                    """{ "userAgent": "" }""");
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write("View mode emulation failed.");
+            AppLog.Write(ex);
+        }
+    }
+
+    private static void NavigateTab(BrowserTab tab, string url)
+    {
+        tab.Url = url;
+        tab.Browser.Source = new Uri(url);
     }
 
     private static void InjectBrowserEnhancementScript(BrowserTab tab)
@@ -254,6 +380,7 @@ public partial class MainWindow
         }
         AddressBox.Text = tab.Url;
         UpdateNavButtons();
+        UpdateViewModeButton();
         RenderTabs();
         SaveTabs();
     }
@@ -435,9 +562,23 @@ public partial class MainWindow
     private void SaveTabs()
     {
         _settings.TabUrls = _tabs.Select(tab => tab.Url).Where(url => !string.IsNullOrWhiteSpace(url)).ToList();
+        _settings.TabViewModes = _tabs
+            .Where(tab => !string.IsNullOrWhiteSpace(tab.Url))
+            .Select(tab => tab.ViewMode)
+            .ToList();
         _settings.ActiveTabIndex = _activeTab is null ? 0 : Math.Max(0, _tabs.IndexOf(_activeTab));
         _settings.LastUrl = _activeTab?.Url ?? _settings.LastUrl;
         _settingsStore.Save(_settings);
+    }
+
+    private void UpdateViewModeButton()
+    {
+        var mobile = _activeTab?.ViewMode == BrowserViewMode.Mobile;
+        ViewModeIcon.Text = mobile ? MobileViewModeIcon : DesktopViewModeIcon;
+        ViewModeButton.ToolTip = mobile ? "Mobile mode" : "Desktop mode";
+        ViewModeButton.Background = mobile
+            ? (System.Windows.Media.Brush)FindResource("AccentSoft")
+            : System.Windows.Media.Brushes.Transparent;
     }
 
     private static string GetTitleFromUrl(string url)

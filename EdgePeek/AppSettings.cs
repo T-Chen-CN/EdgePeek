@@ -6,6 +6,12 @@ public enum DockEdge
     Right
 }
 
+public enum BrowserViewMode
+{
+    Desktop,
+    Mobile
+}
+
 public sealed class AppSettings
 {
     public DockEdge Edge { get; set; } = DockEdge.Right;
@@ -27,5 +33,6 @@ public sealed class AppSettings
     public string HomeUrl { get; set; } = "https://www.bing.com";
     public string LastUrl { get; set; } = "https://www.bing.com";
     public List<string> TabUrls { get; set; } = [];
+    public List<BrowserViewMode> TabViewModes { get; set; } = [];
     public int ActiveTabIndex { get; set; }
 }

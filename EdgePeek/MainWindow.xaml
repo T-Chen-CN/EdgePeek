@@ -92,6 +92,7 @@
               <ColumnDefinition Width="30"/>
               <ColumnDefinition Width="30"/>
               <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
 
             <Button x:Name="BackButton" Grid.Column="0" Click="BackButton_Click" ToolTip="Back">
@@ -109,13 +110,16 @@
                      MinWidth="140"
                      VerticalContentAlignment="Center"
                      KeyDown="AddressBox_KeyDown"/>
-            <Button Grid.Column="4" Click="HomeButton_Click" ToolTip="Home">
+            <Button x:Name="ViewModeButton" Grid.Column="4" Click="ViewModeButton_Click" ToolTip="Desktop mode">
+              <TextBlock x:Name="ViewModeIcon" Text="&#xE977;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
+            </Button>
+            <Button Grid.Column="5" Click="HomeButton_Click" ToolTip="Home">
               <TextBlock Text="&#xE80F;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
-            <Button Grid.Column="5" Click="SettingsButton_Click" ToolTip="Settings">
+            <Button Grid.Column="6" Click="SettingsButton_Click" ToolTip="Settings">
               <TextBlock Text="&#xE713;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
-            <Button Grid.Column="6" Click="HideButton_Click" ToolTip="Hide panel">
+            <Button Grid.Column="7" Click="HideButton_Click" ToolTip="Hide panel">
               <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
           </Grid>
