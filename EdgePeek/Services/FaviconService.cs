@@ -10,7 +10,13 @@ namespace EdgePeek.Services;
 public sealed class FaviconService
 {
     private const int MaxIconBytes = 512 * 1024;
-    private static readonly HttpClient Client = new()
+    private const int DesiredIconPixels = 48;
+    private const int MinimumSharpIconPixels = 32;
+    private static readonly HttpClient DefaultClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(4)
+    };
+    private static readonly HttpClient DirectClient = new(new HttpClientHandler { UseProxy = false })
     {
         Timeout = TimeSpan.FromSeconds(4)
     };
@@ -35,15 +41,14 @@ public sealed class FaviconService
                 return null;
             }
 
-            var bytes = await TryGetPageIconAsync(webView, url)
-                        ?? webViewBytes;
+            var bytes = await TryGetPageIconAsync(webView, url, webViewBytes);
 
             var image = new BitmapImage();
             image.BeginInit();
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.StreamSource = new MemoryStream(bytes);
-            image.DecodePixelWidth = 32;
-            image.DecodePixelHeight = 32;
+            image.DecodePixelWidth = DesiredIconPixels;
+            image.DecodePixelHeight = DesiredIconPixels;
             image.EndInit();
             if (image.CanFreeze)
             {
@@ -60,15 +65,16 @@ public sealed class FaviconService
         }
     }
 
-    private static async Task<byte[]?> TryGetPageIconAsync(CoreWebView2 webView, string url)
+    private static async Task<byte[]> TryGetPageIconAsync(CoreWebView2 webView, string url, byte[] webViewBytes)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var pageUri))
         {
-            return null;
+            return webViewBytes;
         }
 
         try
         {
+            var best = new IconImage(webViewBytes, GetLargestBitmapSize(webViewBytes), "webview");
             var candidates = await GetDocumentIconCandidatesAsync(webView, pageUri);
             candidates.AddRange(await GetManifestIconCandidatesAsync(candidates, pageUri));
 
@@ -78,18 +84,36 @@ public sealed class FaviconService
                          .ThenByDescending(candidate => candidate.MaxSize))
             {
                 var bytes = await TryDownloadIconAsync(candidate.Href);
-                if (bytes is not null)
+                if (bytes is null)
+                {
+                    continue;
+                }
+
+                var size = GetLargestBitmapSize(bytes);
+                if (size <= 0)
+                {
+                    continue;
+                }
+
+                if (size >= MinimumSharpIconPixels)
                 {
                     return bytes;
                 }
+
+                if (size > best.PixelSize)
+                {
+                    best = new IconImage(bytes, size, candidate.Href);
+                }
             }
+
+            return best.Bytes;
         }
         catch (Exception ex)
         {
             AppLog.Write(ex);
         }
 
-        return null;
+        return webViewBytes;
     }
 
     private static async Task<List<IconCandidate>> GetDocumentIconCandidatesAsync(CoreWebView2 webView, Uri pageUri)
@@ -154,9 +178,23 @@ public sealed class FaviconService
 
         try
         {
+            return await TryDownloadIconAsync(DefaultClient, href)
+                   ?? await TryDownloadIconAsync(DirectClient, href);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write(ex);
+            return null;
+        }
+    }
+
+    private static async Task<byte[]?> TryDownloadIconAsync(HttpClient client, string href)
+    {
+        try
+        {
             using var request = new HttpRequestMessage(HttpMethod.Get, href);
             request.Headers.UserAgent.ParseAdd("EdgePeek/0.1");
-            using var response = await Client.SendAsync(request);
+            using var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 return null;
@@ -249,6 +287,26 @@ public sealed class FaviconService
 
         return score;
     }
+
+    private static int GetLargestBitmapSize(byte[] bytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(bytes);
+            var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+            return decoder.Frames
+                .Select(frame => Math.Min(frame.PixelWidth, frame.PixelHeight))
+                .DefaultIfEmpty(0)
+                .Max();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write(ex);
+            return 0;
+        }
+    }
+
+    private readonly record struct IconImage(byte[] Bytes, int PixelSize, string Source);
 
     private readonly record struct IconCandidate(string Rel, string Href, string Sizes)
     {

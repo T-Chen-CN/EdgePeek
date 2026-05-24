@@ -331,10 +331,14 @@ public partial class MainWindow
                     Source = tab.Favicon,
                     Width = 24,
                     Height = 24,
+                    SnapsToDevicePixels = true,
+                    UseLayoutRounding = true,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Stretch = Stretch.Uniform
                 };
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+                RenderOptions.SetEdgeMode(image, EdgeMode.Aliased);
                 tabContent = new Border
                 {
                     Width = 30,
