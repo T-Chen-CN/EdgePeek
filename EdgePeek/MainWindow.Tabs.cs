@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Text.Json;
 using EdgePeek.Services;
 
 namespace EdgePeek;
@@ -13,6 +14,8 @@ public partial class MainWindow
     private const string DesktopViewModeIcon = "\uE977";
     private const string MobileViewModeIcon = "\uE8EA";
     private const string MobileUserAgent = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
+    private const int DefaultMobileWidth = 390;
+    private const int DefaultMobileHeight = 844;
 
     private void AddressBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
@@ -198,43 +201,8 @@ public partial class MainWindow
             {
                 await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
                     "Emulation.setUserAgentOverride",
-                    """
-                    {
-                      "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36",
-                      "platform": "Android",
-                      "userAgentMetadata": {
-                        "brands": [
-                          { "brand": "Chromium", "version": "125" },
-                          { "brand": "Google Chrome", "version": "125" },
-                          { "brand": "Not.A/Brand", "version": "24" }
-                        ],
-                        "fullVersionList": [
-                          { "brand": "Chromium", "version": "125.0.0.0" },
-                          { "brand": "Google Chrome", "version": "125.0.0.0" },
-                          { "brand": "Not.A/Brand", "version": "24.0.0.0" }
-                        ],
-                        "platform": "Android",
-                        "platformVersion": "14.0.0",
-                        "architecture": "",
-                        "model": "Pixel 8",
-                        "mobile": true
-                      }
-                    }
-                    """);
-                await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
-                    "Emulation.setDeviceMetricsOverride",
-                    """
-                    {
-                      "width": 390,
-                      "height": 844,
-                      "deviceScaleFactor": 3,
-                      "mobile": true,
-                      "screenOrientation": {
-                        "type": "portraitPrimary",
-                        "angle": 0
-                      }
-                    }
-                    """);
+                    GetMobileUserAgentOverrideJson());
+                await ApplyMobileDeviceMetricsAsync(tab);
                 await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync(
                     "Emulation.setTouchEmulationEnabled",
                     """{ "enabled": true, "maxTouchPoints": 5 }""");
@@ -261,6 +229,91 @@ public partial class MainWindow
             AppLog.Write("View mode emulation failed.");
             AppLog.Write(ex);
         }
+    }
+
+    private void ScheduleMobileMetricsUpdate()
+    {
+        if (_activeTab?.ViewMode != BrowserViewMode.Mobile)
+        {
+            return;
+        }
+
+        _mobileMetricsResizeTimer.Stop();
+        _mobileMetricsResizeTimer.Start();
+    }
+
+    private async Task UpdateActiveMobileMetricsAsync()
+    {
+        if (_activeTab?.ViewMode != BrowserViewMode.Mobile)
+        {
+            return;
+        }
+
+        await ApplyMobileDeviceMetricsAsync(_activeTab);
+    }
+
+    private async Task ApplyMobileDeviceMetricsAsync(BrowserTab tab)
+    {
+        if (tab.Browser.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        var width = GetCssPixelLength(BrowserHost.ActualWidth, DefaultMobileWidth);
+        var height = GetCssPixelLength(BrowserHost.ActualHeight, DefaultMobileHeight);
+        var json = JsonSerializer.Serialize(new
+        {
+            width,
+            height,
+            deviceScaleFactor = 3,
+            mobile = true,
+            screenOrientation = new
+            {
+                type = height >= width ? "portraitPrimary" : "landscapePrimary",
+                angle = height >= width ? 0 : 90
+            }
+        });
+
+        await tab.Browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride", json);
+    }
+
+    private static int GetCssPixelLength(double value, int fallback)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value) || value < 1)
+        {
+            return fallback;
+        }
+
+        return Math.Max(1, (int)Math.Round(value));
+    }
+
+    private static string GetMobileUserAgentOverrideJson()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            userAgent = MobileUserAgent,
+            platform = "Android",
+            userAgentMetadata = new
+            {
+                brands = new[]
+                {
+                    new { brand = "Chromium", version = "125" },
+                    new { brand = "Google Chrome", version = "125" },
+                    new { brand = "Not.A/Brand", version = "24" }
+                },
+                fullVersionList = new[]
+                {
+                    new { brand = "Chromium", version = "125.0.0.0" },
+                    new { brand = "Google Chrome", version = "125.0.0.0" },
+                    new { brand = "Not.A/Brand", version = "24.0.0.0" }
+                },
+                platform = "Android",
+                platformVersion = "14.0.0",
+                architecture = "",
+                model = "Pixel 8",
+                mobile = true
+            }
+        });
     }
 
     private static void NavigateTab(BrowserTab tab, string url)

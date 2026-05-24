@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private readonly FaviconService _faviconService = new();
     private readonly DispatcherTimer _hideDelayTimer;
     private readonly DispatcherTimer _autoHideCheckTimer;
+    private readonly DispatcherTimer _mobileMetricsResizeTimer;
     private bool _wasPrimaryMouseDownOutside;
     private bool _isShown;
     private bool _isReallyClosing;
@@ -103,6 +104,16 @@ public partial class MainWindow : Window
             {
                 _wasPrimaryMouseDownOutside = IsPrimaryMouseDown() && !IsMouseInsidePanel();
             }
+        };
+
+        _mobileMetricsResizeTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(140)
+        };
+        _mobileMetricsResizeTimer.Tick += (_, _) =>
+        {
+            _mobileMetricsResizeTimer.Stop();
+            UpdateActiveMobileMetricsAsync().Forget("Update mobile metrics after resize");
         };
 
         _hotEdgeWatcher = new HotEdgeWatcher(_settings, GetPanelHotZoneBounds);
@@ -271,6 +282,8 @@ public partial class MainWindow : Window
             EnsureCurrentScreenBounds();
             Left = GetHiddenLeft(_currentScreenBounds);
         }
+
+        ScheduleMobileMetricsUpdate();
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
@@ -290,6 +303,7 @@ public partial class MainWindow : Window
         _globalMouseHook.Dispose();
         _windowAnimator.Stop();
         _autoHideCheckTimer.Stop();
+        _mobileMetricsResizeTimer.Stop();
         _hotKeyManager.Dispose();
         base.OnClosed(e);
     }
