@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace EdgePeek;
 
@@ -19,8 +20,7 @@ public static class AppPaths
     public static string DownloadsHistoryPath => Path.Combine(DataFolder, "downloads.json");
 
     public static string DefaultDownloadFolder => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        "Downloads",
+        GetSystemDownloadsFolder(),
         AppFolderName);
 
     public static string LegacySettingsPath => Path.Combine(
@@ -60,4 +60,40 @@ public static class AppPaths
             return false;
         }
     }
+
+    private static string GetSystemDownloadsFolder()
+    {
+        var downloadsId = new Guid("374DE290-123F-4565-9164-39C4925E467B");
+        var result = SHGetKnownFolderPath(ref downloadsId, 0, IntPtr.Zero, out var pathPointer);
+        try
+        {
+            if (result == 0 && pathPointer != IntPtr.Zero)
+            {
+                var path = Marshal.PtrToStringUni(pathPointer);
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    return path;
+                }
+            }
+        }
+        finally
+        {
+            if (pathPointer != IntPtr.Zero)
+            {
+                Marshal.FreeCoTaskMem(pathPointer);
+            }
+        }
+
+        AppLog.Write($"System Downloads folder lookup failed. HRESULT=0x{result:X8}");
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads");
+    }
+
+    [DllImport("shell32.dll")]
+    private static extern int SHGetKnownFolderPath(
+        ref Guid rfid,
+        uint dwFlags,
+        IntPtr hToken,
+        out IntPtr ppszPath);
 }
