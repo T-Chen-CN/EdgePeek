@@ -11,19 +11,39 @@ public partial class MainWindow
 {
     private void DownloadsButton_Click(object sender, RoutedEventArgs e)
     {
+        if (DownloadsPanel.Visibility == Visibility.Visible)
+        {
+            CloseDownloadsPanel();
+            return;
+        }
+
         TryCloseSettingsPage(() =>
         {
-            DownloadsPanel.Visibility = DownloadsPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-            if (DownloadsPanel.Visibility == Visibility.Visible)
-            {
-                RenderDownloads();
-            }
+            OpenDownloadsPanel();
         });
     }
 
     private void CloseDownloadsButton_Click(object sender, RoutedEventArgs e)
     {
+        CloseDownloadsPanel();
+    }
+
+    private void OpenDownloadsPanel()
+    {
+        SetTopBarVisible(true);
+        SettingsHost.Visibility = Visibility.Collapsed;
+        BrowserHost.Visibility = Visibility.Collapsed;
+        DownloadsPanel.Visibility = Visibility.Visible;
+        RenderDownloads();
+    }
+
+    private void CloseDownloadsPanel()
+    {
         DownloadsPanel.Visibility = Visibility.Collapsed;
+        if (SettingsHost.Visibility != Visibility.Visible)
+        {
+            BrowserHost.Visibility = Visibility.Visible;
+        }
     }
 
     private void ClearDownloadsButton_Click(object sender, RoutedEventArgs e)

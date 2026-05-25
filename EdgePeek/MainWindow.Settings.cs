@@ -23,6 +23,7 @@ public partial class MainWindow
 
         _settingsPage = new SettingsPage(_settings);
         SetTopBarVisible(true);
+        DownloadsPanel.Visibility = Visibility.Collapsed;
         _settingsPage.Saved += (_, _) =>
         {
             if (ApplySettings())

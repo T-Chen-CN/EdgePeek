@@ -40,12 +40,14 @@ public sealed class DownloadManager
         var targetPath = ChooseTargetPath(args, owner);
         if (string.IsNullOrWhiteSpace(targetPath))
         {
+            AppLog.Write($"Download canceled before start. uri={operation.Uri}");
             args.Cancel = true;
             return;
         }
 
         args.ResultFilePath = targetPath;
         args.Handled = true;
+        AppLog.Write($"Download starting. uri={operation.Uri}; target={targetPath}");
 
         var record = new DownloadRecord
         {
@@ -82,6 +84,7 @@ public sealed class DownloadManager
             {
                 record.Error = operation.InterruptReason.ToString();
             }
+            AppLog.Write($"Download state changed. file={record.FilePath}; state={record.State}; bytes={record.ReceivedBytes}/{record.TotalBytes}; error={record.Error}");
             _activeOperations.Remove(record.Id);
 
             SaveAndNotify();
@@ -105,6 +108,7 @@ public sealed class DownloadManager
         if (_activeOperations.TryGetValue(record.Id, out var operation))
         {
             operation.Cancel();
+            AppLog.Write($"Download cancel requested. file={record.FilePath}");
         }
 
         record.State = DownloadRecordState.Canceled;

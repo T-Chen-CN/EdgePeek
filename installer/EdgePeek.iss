@@ -1,9 +1,9 @@
 #ifndef AppVersion
-#define AppVersion "0.1.8"
+#define AppVersion "0.1.9"
 #endif
 
 #ifndef SourceDir
-#define SourceDir "..\artifacts\publish\EdgePeek-0.1.8-win-x64"
+#define SourceDir "..\artifacts\publish\EdgePeek-0.1.9-win-x64"
 #endif
 
 #ifndef OutputDir
