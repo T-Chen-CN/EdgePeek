@@ -1,9 +1,9 @@
 #ifndef AppVersion
-#define AppVersion "0.1.10"
+#define AppVersion "0.1.11"
 #endif
 
 #ifndef SourceDir
-#define SourceDir "..\artifacts\publish\EdgePeek-0.1.10-win-x64"
+#define SourceDir "..\artifacts\publish\EdgePeek-0.1.11-win-x64"
 #endif
 
 #ifndef OutputDir
@@ -28,6 +28,9 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\EdgePeek.exe
+CloseApplications=yes
+CloseApplicationsFilter=EdgePeek.exe
+RestartApplications=no
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
@@ -55,6 +58,48 @@ begin
     Result := ExpandConstant('{localappdata}\Programs\EdgePeek');
 end;
 
+function IsEdgePeekRunning(): Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec(
+    ExpandConstant('{cmd}'),
+    '/C tasklist /FI "IMAGENAME eq EdgePeek.exe" | find /I "EdgePeek.exe" >NUL',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode) and (ResultCode = 0);
+end;
+
+procedure StopRunningEdgePeek();
+var
+  ResultCode: Integer;
+begin
+  if not IsEdgePeekRunning() then
+    Exit;
+
+  Exec(
+    ExpandConstant('{cmd}'),
+    '/C taskkill /IM EdgePeek.exe /T >NUL 2>NUL',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode);
+  Sleep(2500);
+
+  if IsEdgePeekRunning() then
+  begin
+    Exec(
+      ExpandConstant('{cmd}'),
+      '/C taskkill /F /IM EdgePeek.exe /T >NUL 2>NUL',
+      '',
+      SW_HIDE,
+      ewWaitUntilTerminated,
+      ResultCode);
+    Sleep(1000);
+  end;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   AppDataDir: String;
@@ -64,6 +109,9 @@ var
   WERReportQueueDir: String;
   WERTempDir: String;
 begin
+  if CurUninstallStep = usUninstall then
+    StopRunningEdgePeek();
+
   if CurUninstallStep <> usPostUninstall then
     Exit;
 

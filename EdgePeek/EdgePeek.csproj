@@ -10,7 +10,7 @@
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyName>EdgePeek</AssemblyName>
     <RootNamespace>EdgePeek</RootNamespace>
-    <Version>0.1.10</Version>
+    <Version>0.1.11</Version>
     <Authors>EdgePeek contributors</Authors>
     <Description>A lightweight Windows slide-out WebView2 browser panel.</Description>
     <RepositoryUrl>https://github.com/T-Chen-CN/EdgePeek</RepositoryUrl>
