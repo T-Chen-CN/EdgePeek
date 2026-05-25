@@ -93,6 +93,7 @@
               <ColumnDefinition Width="30"/>
               <ColumnDefinition Width="30"/>
               <ColumnDefinition Width="30"/>
+              <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
 
             <Button x:Name="BackButton" Grid.Column="0" Click="BackButton_Click" ToolTip="Back">
@@ -110,16 +111,19 @@
                      MinWidth="140"
                      VerticalContentAlignment="Center"
                      KeyDown="AddressBox_KeyDown"/>
-            <Button x:Name="ViewModeButton" Grid.Column="4" Click="ViewModeButton_Click" ToolTip="Desktop mode">
+            <Button x:Name="DownloadsButton" Grid.Column="4" Click="DownloadsButton_Click" ToolTip="Downloads">
+              <TextBlock Text="&#xE896;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
+            </Button>
+            <Button x:Name="ViewModeButton" Grid.Column="5" Click="ViewModeButton_Click" ToolTip="Desktop mode">
               <TextBlock x:Name="ViewModeIcon" Text="&#xE977;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
-            <Button Grid.Column="5" Click="HomeButton_Click" ToolTip="Home">
+            <Button Grid.Column="6" Click="HomeButton_Click" ToolTip="Home">
               <TextBlock Text="&#xE80F;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
-            <Button Grid.Column="6" Click="SettingsButton_Click" ToolTip="Settings">
+            <Button Grid.Column="7" Click="SettingsButton_Click" ToolTip="Settings">
               <TextBlock Text="&#xE713;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
-            <Button Grid.Column="7" Click="HideButton_Click" ToolTip="Hide panel">
+            <Button Grid.Column="8" Click="HideButton_Click" ToolTip="Hide panel">
               <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="13" Foreground="{StaticResource TextMain}"/>
             </Button>
           </Grid>
@@ -127,6 +131,36 @@
 
         <Grid x:Name="BrowserHost" Grid.Row="2"/>
         <Grid x:Name="SettingsHost" Grid.Row="2" Visibility="Collapsed"/>
+        <Border x:Name="DownloadsPanel"
+                Grid.Row="2"
+                Width="320"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Stretch"
+                Background="{StaticResource SurfaceBg}"
+                BorderBrush="{StaticResource BorderSoft}"
+                BorderThickness="1,0,0,0"
+                Visibility="Collapsed"
+                Panel.ZIndex="8">
+          <DockPanel>
+            <Grid DockPanel.Dock="Top" Height="42" Margin="10,6,8,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="30"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="Downloads" Foreground="{StaticResource TextMain}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <Button Grid.Column="1" Click="ClearDownloadsButton_Click" ToolTip="Clear completed downloads">
+                <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+              </Button>
+              <Button Grid.Column="2" Click="CloseDownloadsButton_Click" ToolTip="Close">
+                <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+              </Button>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <ItemsControl x:Name="DownloadsList" Margin="10,0,10,10"/>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
         <Border x:Name="BottomResizeGrip"
                 Grid.Row="3"
                 Background="{StaticResource WindowBg}"

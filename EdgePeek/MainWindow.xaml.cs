@@ -36,6 +36,7 @@ public partial class MainWindow : Window
     private readonly NativeWindowAnimator _windowAnimator;
     private readonly WebViewEnvironmentFactory _webViewEnvironmentFactory = new();
     private readonly FaviconService _faviconService = new();
+    private readonly DownloadManager _downloadManager;
     private readonly DispatcherTimer _hideDelayTimer;
     private readonly DispatcherTimer _autoHideCheckTimer;
     private readonly DispatcherTimer _mobileMetricsResizeTimer;
@@ -62,6 +63,7 @@ public partial class MainWindow : Window
     {
         _settings = settings;
         _settingsStore = settingsStore;
+        _downloadManager = new DownloadManager(_settings);
 
         InitializeComponent();
         LoadWindowIcon();
@@ -132,6 +134,7 @@ public partial class MainWindow : Window
         };
 
         _windowAnimator = new NativeWindowAnimator(this);
+        _downloadManager.RecordsChanged += (_, _) => Dispatcher.BeginInvoke(RenderDownloads);
 
         Loaded += MainWindow_Loaded;
         SourceInitialized += MainWindow_SourceInitialized;

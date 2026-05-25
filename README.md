@@ -22,6 +22,7 @@ EdgePeek is open-source software licensed under the [MIT License](LICENSE).
 - Last URL, tabs, panel size, language, and behavior settings are saved under the EdgePeek data folder
 - Settings, logs, and WebView2 profile data are stored under the app `Data` folder when possible
 - Tab icons are loaded from WebView2 or favicon URLs declared by the current page; no third-party favicon lookup service is used
+- Downloads are managed by EdgePeek and default to the user's `Downloads\EdgePeek` folder
 
 ## Source Requirements
 
@@ -74,20 +75,20 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.7 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.8 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.7
+.\scripts\publish-release.ps1 -Version 0.1.8
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.7 `
+  -Version 0.1.8 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```

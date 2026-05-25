@@ -30,6 +30,8 @@ public sealed class AppSettings
     public bool EnableGlobalHotkey { get; set; } = true;
     public string HotkeyGesture { get; set; } = "Ctrl+Alt+Space";
     public string Language { get; set; } = "en";
+    public string DownloadFolder { get; set; } = string.Empty;
+    public bool AskWhereToSaveDownloads { get; set; }
     public string HomeUrl { get; set; } = "https://www.bing.com";
     public string LastUrl { get; set; } = "https://www.bing.com";
     public List<string> TabUrls { get; set; } = [];

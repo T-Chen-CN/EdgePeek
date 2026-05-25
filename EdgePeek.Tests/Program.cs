@@ -22,6 +22,7 @@ var tests = new (string Name, Action Body)[]
     ("settings show panel on startup by default", () => True(new AppSettings().ShowOnStartup)),
     ("settings store saves and loads", SettingsStoreSavesAndLoads),
     ("settings store backs up corrupt settings", SettingsStoreBacksUpCorruptSettings),
+    ("downloads default folder is stable", DownloadsDefaultFolderIsStable),
     ("app paths expose data children", AppPathsExposeDataChildren),
 };
 
@@ -136,6 +137,15 @@ static void AppPathsExposeDataChildren()
     True(AppPaths.LogPath.StartsWith(AppPaths.DataFolder, StringComparison.OrdinalIgnoreCase));
     True(AppPaths.WebView2Folder.StartsWith(AppPaths.DataFolder, StringComparison.OrdinalIgnoreCase));
     True(System.IO.Directory.Exists(AppPaths.DataFolder));
+}
+
+static void DownloadsDefaultFolderIsStable()
+{
+    var settings = new AppSettings();
+    Equal(AppPaths.DefaultDownloadFolder, DownloadManager.GetEffectiveDownloadFolder(settings));
+
+    settings.DownloadFolder = "%USERPROFILE%\\Downloads\\CustomEdgePeek";
+    True(DownloadManager.GetEffectiveDownloadFolder(settings).EndsWith("Downloads\\CustomEdgePeek", StringComparison.OrdinalIgnoreCase));
 }
 
 static void Equal<T>(T expected, T actual)

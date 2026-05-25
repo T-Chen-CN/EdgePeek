@@ -140,6 +140,11 @@ public partial class MainWindow
             {
                 HandleBrowserWebMessage(messageArgs.TryGetWebMessageAsString());
             };
+            tab.Browser.CoreWebView2.DownloadStarting += (_, downloadArgs) =>
+            {
+                _downloadManager.HandleDownloadStarting(downloadArgs, this);
+                RenderDownloads();
+            };
 
             tab.Browser.CoreWebView2
                 .AddScriptToExecuteOnDocumentCreatedAsync(BrowserEnhancementScriptProvider.Script)

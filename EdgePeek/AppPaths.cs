@@ -16,6 +16,13 @@ public static class AppPaths
 
     public static string WebView2Folder => Path.Combine(DataFolder, "WebView2");
 
+    public static string DownloadsHistoryPath => Path.Combine(DataFolder, "downloads.json");
+
+    public static string DefaultDownloadFolder => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        "Downloads",
+        AppFolderName);
+
     public static string LegacySettingsPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         AppFolderName,

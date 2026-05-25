@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using EdgePeek.Localization;
+using Forms = System.Windows.Forms;
 
 namespace EdgePeek;
 
@@ -43,6 +44,8 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         StartWithWindowsBox.IsChecked = _settings.StartWithWindows;
         ShowOnStartupBox.IsChecked = _settings.ShowOnStartup;
         HotkeyBox.IsChecked = _settings.EnableGlobalHotkey;
+        DownloadFolderBox.Text = DownloadManager.GetEffectiveDownloadFolder(_settings);
+        AskDownloadFolderBox.IsChecked = _settings.AskWhereToSaveDownloads;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -74,6 +77,23 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
             return false;
         }
 
+        var downloadFolder = DownloadFolderBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(downloadFolder))
+        {
+            downloadFolder = AppPaths.DefaultDownloadFolder;
+        }
+
+        try
+        {
+            System.IO.Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(downloadFolder));
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write(ex);
+            ShowValidation("Download folder could not be created.");
+            return false;
+        }
+
         var selectedLanguage = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
         _settings.Language = Strings.IsChinese(selectedLanguage) ? "zh-CN" : "en";
         _settings.TriggerThickness = triggerThickness;
@@ -85,6 +105,8 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
         _settings.ShowOnStartup = ShowOnStartupBox.IsChecked == true;
         _settings.EnableGlobalHotkey = HotkeyBox.IsChecked == true;
+        _settings.DownloadFolder = downloadFolder;
+        _settings.AskWhereToSaveDownloads = AskDownloadFolderBox.IsChecked == true;
         return true;
     }
 
@@ -152,6 +174,9 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         StartWithWindowsBox.Content = Strings.StartWithWindows(zh);
         ShowOnStartupBox.Content = Strings.ShowOnStartup(zh);
         HotkeyBox.Content = Strings.EnableHotkey(zh);
+        DownloadFolderLabel.Text = "Download folder";
+        BrowseDownloadFolderButton.Content = "Browse";
+        AskDownloadFolderBox.Content = "Ask where to save each download";
         BackButton.Content = Strings.Back(zh);
         SaveButton.Content = Strings.Save(zh);
 
@@ -181,7 +206,9 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
                HideOnLostFocusBox.IsChecked != _settings.HideOnLostFocus ||
                StartWithWindowsBox.IsChecked != _settings.StartWithWindows ||
                ShowOnStartupBox.IsChecked != _settings.ShowOnStartup ||
-               HotkeyBox.IsChecked != _settings.EnableGlobalHotkey;
+               HotkeyBox.IsChecked != _settings.EnableGlobalHotkey ||
+               DownloadFolderBox.Text.Trim() != DownloadManager.GetEffectiveDownloadFolder(_settings) ||
+               AskDownloadFolderBox.IsChecked != _settings.AskWhereToSaveDownloads;
     }
 
     private void ShowValidation(string message)
@@ -218,6 +245,20 @@ public partial class SettingsPage : System.Windows.Controls.UserControl
         {
             Content = text
         };
+    }
+
+    private void BrowseDownloadFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new Forms.FolderBrowserDialog
+        {
+            Description = "Choose download folder",
+            SelectedPath = DownloadFolderBox.Text.Trim()
+        };
+
+        if (dialog.ShowDialog() == Forms.DialogResult.OK)
+        {
+            DownloadFolderBox.Text = dialog.SelectedPath;
+        }
     }
 
 }
