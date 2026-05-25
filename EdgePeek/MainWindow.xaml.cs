@@ -127,6 +127,7 @@ public partial class MainWindow : Window
         _globalMouseHook = new GlobalMouseHook();
         _globalMouseHook.MouseDown += (_, _) =>
         {
+            CloseDownloadsPopupFromExternalClick();
             if (ShouldAutoHideFromExternalClick())
             {
                 Dispatcher.BeginInvoke(HidePanel);
@@ -134,7 +135,12 @@ public partial class MainWindow : Window
         };
 
         _windowAnimator = new NativeWindowAnimator(this);
-        _downloadManager.RecordsChanged += (_, _) => Dispatcher.BeginInvoke(RenderDownloads);
+        foreach (var record in _downloadManager.Records.Where(record => record.State != DownloadRecordState.InProgress))
+        {
+            _knownTerminalDownloadIds.Add(record.Id);
+        }
+
+        _downloadManager.RecordsChanged += (_, _) => Dispatcher.BeginInvoke(RefreshDownloads);
 
         Loaded += MainWindow_Loaded;
         SourceInitialized += MainWindow_SourceInitialized;
@@ -212,6 +218,7 @@ public partial class MainWindow : Window
     public void HidePanel()
     {
         AppLog.Write("HidePanel requested.");
+        CloseDownloadsPopup();
         if (!_isShown)
         {
             return;
@@ -302,6 +309,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        CloseDownloadsPopupForShutdown();
         _hotEdgeWatcher.Stop();
         _globalMouseHook.Dispose();
         _windowAnimator.Stop();

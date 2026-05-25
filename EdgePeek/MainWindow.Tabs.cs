@@ -142,8 +142,10 @@ public partial class MainWindow
             };
             tab.Browser.CoreWebView2.DownloadStarting += (_, downloadArgs) =>
             {
-                _downloadManager.HandleDownloadStarting(downloadArgs, this);
-                RenderDownloads();
+                if (_downloadManager.HandleDownloadStarting(downloadArgs, this))
+                {
+                    NotifyDownloadStarted();
+                }
             };
 
             tab.Browser.CoreWebView2

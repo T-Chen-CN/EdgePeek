@@ -34,7 +34,7 @@ public sealed class DownloadManager
             : Environment.ExpandEnvironmentVariables(settings.DownloadFolder);
     }
 
-    public void HandleDownloadStarting(CoreWebView2DownloadStartingEventArgs args, Window owner)
+    public bool HandleDownloadStarting(CoreWebView2DownloadStartingEventArgs args, Window owner)
     {
         var operation = args.DownloadOperation;
         var targetPath = ChooseTargetPath(args, owner);
@@ -42,7 +42,7 @@ public sealed class DownloadManager
         {
             AppLog.Write($"Download canceled before start. uri={operation.Uri}");
             args.Cancel = true;
-            return;
+            return false;
         }
 
         args.ResultFilePath = targetPath;
@@ -89,6 +89,8 @@ public sealed class DownloadManager
 
             SaveAndNotify();
         };
+
+        return true;
     }
 
     public void Remove(DownloadRecord record)

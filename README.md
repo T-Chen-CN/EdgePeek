@@ -75,20 +75,20 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.11 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.12 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.11
+.\scripts\publish-release.ps1 -Version 0.1.12
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.11 `
+  -Version 0.1.12 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```
