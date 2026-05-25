@@ -74,27 +74,27 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.6 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.7 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.6
+.\scripts\publish-release.ps1 -Version 0.1.7
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.6 `
+  -Version 0.1.7 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```
 
 The script writes self-contained release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
 
-The installer defaults to `D:\Program Files\EdgePeek` when a D: drive exists. If D: is not available, it falls back to `%LOCALAPPDATA%\Programs\EdgePeek`. During uninstall, users can choose whether to remove EdgePeek user data.
+The installer defaults to `D:\Program Files\EdgePeek` when a D: drive exists. If D: is not available, it falls back to `%LOCALAPPDATA%\Programs\EdgePeek`. During uninstall, users can choose whether to remove EdgePeek user data, including settings, logs, WebView2 profile data, legacy settings, fallback data, and accessible Windows Error Reporting entries.
 
 ## Code Signing
 

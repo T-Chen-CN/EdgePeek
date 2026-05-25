@@ -1,9 +1,9 @@
 #ifndef AppVersion
-#define AppVersion "0.1.6"
+#define AppVersion "0.1.7"
 #endif
 
 #ifndef SourceDir
-#define SourceDir "..\artifacts\publish\EdgePeek-0.1.6-win-x64"
+#define SourceDir "..\artifacts\publish\EdgePeek-0.1.7-win-x64"
 #endif
 
 #ifndef OutputDir
@@ -57,10 +57,23 @@ end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
+  AppDataDir: String;
   FallbackDataDir: String;
+  LocalAppDir: String;
+  WERReportArchiveDir: String;
+  WERReportQueueDir: String;
+  WERTempDir: String;
 begin
   if CurUninstallStep <> usPostUninstall then
     Exit;
+
+  DeleteFile(ExpandConstant('{userstartup}\EdgePeek.lnk'));
+  DeleteFile(ExpandConstant('{commonstartup}\EdgePeek.lnk'));
+  DeleteFile(ExpandConstant('{autodesktop}\EdgePeek.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\EdgePeek.lnk'));
+  DelTree(ExpandConstant('{group}'), True, True, True);
+  RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'EdgePeek');
+  RegDeleteValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Run', 'EdgePeek');
 
   if MsgBox('Do you want to remove EdgePeek user data?', mbConfirmation, MB_YESNO) <> IDYES then
     Exit;
@@ -69,6 +82,23 @@ begin
 
   FallbackDataDir := ExpandConstant('{localappdata}\EdgePeek\Data');
   DelTree(FallbackDataDir, True, True, True);
+
+  LocalAppDir := ExpandConstant('{localappdata}\EdgePeek');
+  DelTree(LocalAppDir, True, True, True);
+
+  AppDataDir := ExpandConstant('{userappdata}\EdgePeek');
+  DelTree(AppDataDir, True, True, True);
+
+  WERReportArchiveDir := ExpandConstant('{commonappdata}\Microsoft\Windows\WER\ReportArchive');
+  DelTree(WERReportArchiveDir + '\AppCrash_EdgePeek.exe_*', True, True, True);
+  DelTree(WERReportArchiveDir + '\Critical_EdgePeek.exe_*', True, True, True);
+
+  WERReportQueueDir := ExpandConstant('{commonappdata}\Microsoft\Windows\WER\ReportQueue');
+  DelTree(WERReportQueueDir + '\AppCrash_EdgePeek.exe_*', True, True, True);
+  DelTree(WERReportQueueDir + '\Critical_EdgePeek.exe_*', True, True, True);
+
+  WERTempDir := ExpandConstant('{commonappdata}\Microsoft\Windows\WER\Temp');
+  DelTree(WERTempDir + '\*EdgePeek*', True, True, True);
 end;
 
 function IsUsableVersion(Version: String): Boolean;

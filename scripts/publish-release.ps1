@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
-    [string]$Version = "0.1.6",
+    [string]$Version = "0.1.7",
     [switch]$SelfContained,
     [switch]$FrameworkDependent,
     [switch]$SkipInstaller,
@@ -15,7 +15,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ($Version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') {
-    throw "Version must be numeric, for example 0.1.6 or 1.2.3.4."
+    throw "Version must be numeric, for example 0.1.7 or 1.2.3.4."
 }
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
