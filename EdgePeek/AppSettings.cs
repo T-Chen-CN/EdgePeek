@@ -6,6 +6,12 @@ public enum DockEdge
     Right
 }
 
+public enum BrowserViewMode
+{
+    Desktop,
+    Mobile
+}
+
 public sealed class AppSettings
 {
     public DockEdge Edge { get; set; } = DockEdge.Right;
@@ -20,11 +26,15 @@ public sealed class AppSettings
     public bool HideOnLostFocus { get; set; } = true;
     public bool TopMost { get; set; } = true;
     public bool StartWithWindows { get; set; }
+    public bool ShowOnStartup { get; set; } = true;
     public bool EnableGlobalHotkey { get; set; } = true;
     public string HotkeyGesture { get; set; } = "Ctrl+Alt+Space";
     public string Language { get; set; } = "en";
+    public string DownloadFolder { get; set; } = string.Empty;
+    public bool AskWhereToSaveDownloads { get; set; }
     public string HomeUrl { get; set; } = "https://www.bing.com";
     public string LastUrl { get; set; } = "https://www.bing.com";
     public List<string> TabUrls { get; set; } = [];
+    public List<BrowserViewMode> TabViewModes { get; set; } = [];
     public int ActiveTabIndex { get; set; }
 }

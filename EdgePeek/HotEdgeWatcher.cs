@@ -7,15 +7,17 @@ namespace EdgePeek;
 public sealed class HotEdgeWatcher
 {
     private readonly AppSettings _settings;
+    private readonly Func<Rectangle, Rectangle>? _hotZoneBoundsProvider;
     private readonly Timer _timer;
     private bool _isPaused;
     private DateTimeOffset? _hotZoneEnteredAt;
 
     public event EventHandler? HotEdgeReached;
 
-    public HotEdgeWatcher(AppSettings settings)
+    public HotEdgeWatcher(AppSettings settings, Func<Rectangle, Rectangle>? hotZoneBoundsProvider = null)
     {
         _settings = settings;
+        _hotZoneBoundsProvider = hotZoneBoundsProvider;
         _timer = new Timer
         {
             Interval = TimeSpan.FromMilliseconds(settings.TriggerPollingMs)
@@ -34,6 +36,7 @@ public sealed class HotEdgeWatcher
     public void Reconfigure()
     {
         _timer.Interval = TimeSpan.FromMilliseconds(_settings.TriggerPollingMs);
+        _hotZoneEnteredAt = null;
     }
 
     private void CheckCursor()
@@ -46,9 +49,10 @@ public sealed class HotEdgeWatcher
 
         var cursor = Cursor.Position;
         var screen = Screen.FromPoint(cursor);
-        var bounds = screen.Bounds;
+        var bounds = screen.WorkingArea;
+        var hotZoneBounds = _hotZoneBoundsProvider?.Invoke(bounds) ?? bounds;
 
-        if (!IsInHotZone(cursor, bounds))
+        if (!IsInHotZone(cursor, bounds, hotZoneBounds, _settings.Edge, _settings.TriggerThickness))
         {
             _hotZoneEnteredAt = null;
             return;
@@ -62,12 +66,19 @@ public sealed class HotEdgeWatcher
         }
     }
 
-    private bool IsInHotZone(Point cursor, Rectangle bounds)
+    public static bool IsInHotZone(Point cursor, Rectangle screenBounds, Rectangle hotZoneBounds, DockEdge edge, int triggerThickness)
     {
-        return _settings.Edge switch
+        var top = Math.Max(screenBounds.Top, hotZoneBounds.Top);
+        var bottom = Math.Min(screenBounds.Bottom, hotZoneBounds.Bottom);
+        if (bottom <= top || cursor.Y < top || cursor.Y >= bottom)
         {
-            DockEdge.Left => cursor.X <= bounds.Left + _settings.TriggerThickness,
-            DockEdge.Right => cursor.X >= bounds.Right - _settings.TriggerThickness,
+            return false;
+        }
+
+        return edge switch
+        {
+            DockEdge.Left => cursor.X <= screenBounds.Left + triggerThickness,
+            DockEdge.Right => cursor.X >= screenBounds.Right - triggerThickness,
             _ => false
         };
     }

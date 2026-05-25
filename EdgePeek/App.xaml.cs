@@ -23,6 +23,17 @@ public partial class App : System.Windows.Application
         _mainWindow.SettingsApplied += (_, _) => _trayIconManager.RefreshMenu();
 
         _mainWindow.Show();
+        if (settings.ShowOnStartup || ShouldShowOnStartup(e.Args))
+        {
+            _mainWindow.Dispatcher.BeginInvoke(() => _mainWindow.ShowPanel(forceFocus: true));
+        }
+    }
+
+    private static bool ShouldShowOnStartup(string[] args)
+    {
+        return args.Any(arg =>
+            string.Equals(arg, "--show", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "/show", StringComparison.OrdinalIgnoreCase));
     }
 
     private void ExitApplication()

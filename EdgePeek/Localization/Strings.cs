@@ -9,7 +9,6 @@ public static class Strings
 
     public static string SettingsTitle(bool zh) => zh ? "设置" : "Settings";
     public static string Language(bool zh) => zh ? "语言" : "Language";
-    public static string DockEdge(bool zh) => zh ? "停靠边缘" : "Dock edge";
     public static string HotZonePx(bool zh) => zh ? "热区像素" : "Hot zone px";
     public static string EdgeDelayMs(bool zh) => zh ? "贴边触发时长(ms)" : "Edge delay ms";
     public static string HomeUrl(bool zh) => zh ? "主页地址" : "Home URL";
@@ -18,6 +17,7 @@ public static class Strings
     public static string TopMost(bool zh) => zh ? "保持窗口置顶" : "Keep panel above other windows";
     public static string HideOnLostFocus(bool zh) => zh ? "失去焦点时隐藏" : "Hide when focus is lost";
     public static string StartWithWindows(bool zh) => zh ? "开机启动" : "Start with Windows";
+    public static string ShowOnStartup(bool zh) => zh ? "启动时显示面板" : "Show panel when EdgePeek starts";
     public static string EnableHotkey(bool zh) => zh ? "启用快捷键" : "Enable hotkey";
     public static string Back(bool zh) => zh ? "返回" : "Back";
     public static string Save(bool zh) => zh ? "保存" : "Save";

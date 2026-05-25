@@ -19,16 +19,22 @@ EdgePeek is open-source software licensed under the [MIT License](LICENSE).
 - Optional Ctrl+Alt+Space global hotkey
 - Optional start with Windows
 - New windows open in the same panel
-- Last URL, tabs, panel size, language, and behavior settings are saved under `%APPDATA%\EdgePeek\settings.json`
-- WebView2 profile data is stored under `%LOCALAPPDATA%\EdgePeek\WebView2` so build output stays clean
+- Last URL, tabs, panel size, language, and behavior settings are saved under the EdgePeek data folder
+- Settings, logs, and WebView2 profile data are stored under the app `Data` folder when possible
+- Tab icons are loaded from WebView2 or favicon URLs declared by the current page; no third-party favicon lookup service is used
+- Downloads are managed by EdgePeek and default to the user's `Downloads\EdgePeek` folder
 
-## Requirements
+## Source Requirements
 
 - Windows 10/11
 - .NET 8 SDK
 - Microsoft Edge WebView2 Runtime
 
 Most Windows 11 systems already include WebView2 Runtime. If it is missing, install the Evergreen Runtime from Microsoft.
+
+## Installer Runtime Behavior
+
+Release builds are self-contained and include the .NET runtime needed by EdgePeek. The installer checks for Microsoft Edge WebView2 Runtime. If WebView2 Runtime is missing, the installer runs the bundled Microsoft Evergreen Bootstrapper to install it. That WebView2 installation step requires internet access to Microsoft download services.
 
 ## Install Dependencies
 
@@ -55,7 +61,8 @@ dotnet restore
 dotnet run
 ```
 
-The app starts hidden. Move the cursor to the configured screen edge or double-click the tray icon to show it.
+EdgePeek shows its panel by default when it starts. The startup behavior can be changed in Settings.
+To force a one-off visible launch, run `EdgePeek.exe --show`.
 
 ## Run Tests
 
@@ -68,25 +75,27 @@ dotnet run --project EdgePeek.Tests\EdgePeek.Tests.csproj
 Portable zip only:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.0 -SkipInstaller
+.\scripts\publish-release.ps1 -Version 0.1.12 -SkipInstaller
 ```
 
 Portable zip plus an Inno Setup installer:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.0
+.\scripts\publish-release.ps1 -Version 0.1.12
 ```
 
 Signed release artifacts:
 
 ```powershell
 .\scripts\publish-release.ps1 `
-  -Version 0.1.0 `
+  -Version 0.1.12 `
   -CertificatePath C:\certs\publisher.pfx `
   -CertificatePassword "<pfx-password>"
 ```
 
-The script writes release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
+The script writes self-contained release files to `artifacts/`. If Inno Setup 6 is not installed, it still creates the portable zip and prints a warning for the installer step.
+
+The installer defaults to `D:\Program Files\EdgePeek` when a D: drive exists. If D: is not available, it falls back to `%LOCALAPPDATA%\Programs\EdgePeek`. During uninstall, users can choose whether to remove EdgePeek user data, including settings, logs, WebView2 profile data, legacy settings, fallback data, and accessible Windows Error Reporting entries.
 
 ## Code Signing
 
@@ -96,14 +105,14 @@ See [CODE_SIGNING.md](CODE_SIGNING.md) for the signing policy, required reposito
 
 ## Publish A Local Build
 
-Framework-dependent build:
+Framework-dependent build for development experiments:
 
 ```powershell
 cd EdgePeek
 dotnet publish -c Release -r win-x64 --self-contained false
 ```
 
-Self-contained build, larger but does not require the .NET runtime to be installed:
+Self-contained build, matching the release script behavior:
 
 ```powershell
 cd EdgePeek
@@ -124,15 +133,18 @@ The repository intentionally ignores build output, local IDE state, runtime logs
 - `*.WebView2/`, `EdgePeek.exe.WebView2/`
 - `checkpoints/`, `tmp-checkpoint-compare/`
 
-Runtime user data lives outside the repository:
+Runtime user data lives outside the repository and is stored beside the app when possible:
 
-- Settings: `%APPDATA%\EdgePeek\settings.json`
-- WebView2 profile/cache: `%LOCALAPPDATA%\EdgePeek\WebView2`
+- Settings: `<AppDir>\Data\settings.json`
+- Logs: `<AppDir>\Data\edgepeek.log`
+- WebView2 profile/cache: `<AppDir>\Data\WebView2`
+
+If `<AppDir>\Data` is not writable, EdgePeek falls back to `%LOCALAPPDATA%\EdgePeek\Data`. On first launch after upgrading, existing settings from `%APPDATA%\EdgePeek\settings.json` are copied into the new data folder if no new settings file exists.
 
 If `settings.json` cannot be read, EdgePeek backs up the corrupt file as `settings.corrupt-yyyyMMdd-HHmmss.json` before falling back to defaults.
 
 ## Next Steps
 
 - Improve multi-monitor behavior while the panel is already visible
-- Add a real app icon
-- Add automated tests for settings persistence and hotkey edge cases
+- Split browser tab, window placement, and settings coordination out of `MainWindow.xaml.cs`
+- Expand automated coverage around WebView2 event handling and window placement edge cases

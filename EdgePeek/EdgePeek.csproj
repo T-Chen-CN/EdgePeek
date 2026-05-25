@@ -7,9 +7,22 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyName>EdgePeek</AssemblyName>
     <RootNamespace>EdgePeek</RootNamespace>
+    <Version>0.1.12</Version>
+    <Authors>EdgePeek contributors</Authors>
+    <Description>A lightweight Windows slide-out WebView2 browser panel.</Description>
+    <RepositoryUrl>https://github.com/T-Chen-CN/EdgePeek</RepositoryUrl>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\AppIcon.ico" />
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />

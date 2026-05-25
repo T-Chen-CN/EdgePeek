@@ -10,6 +10,7 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <TextBlock x:Name="TitleText"
@@ -31,7 +32,6 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="138"/>
@@ -44,14 +44,8 @@
             <ComboBoxItem Content="中文" Tag="zh-CN"/>
           </ComboBox>
 
-          <TextBlock x:Name="DockEdgeLabel" Grid.Row="1" Grid.Column="0" Text="Dock edge" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,12,12"/>
-          <ComboBox x:Name="EdgeBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
-            <ComboBoxItem Content="Right" Tag="Right"/>
-            <ComboBoxItem Content="Left" Tag="Left"/>
-          </ComboBox>
-
-          <TextBlock x:Name="HomeUrlLabel" Grid.Row="2" Grid.Column="0" Text="Home URL" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-          <TextBox x:Name="HomeUrlBox" Grid.Row="2" Grid.Column="1"/>
+          <TextBlock x:Name="HomeUrlLabel" Grid.Row="1" Grid.Column="0" Text="Home URL" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+          <TextBox x:Name="HomeUrlBox" Grid.Row="1" Grid.Column="1"/>
         </Grid>
       </Border>
 
@@ -108,6 +102,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="138"/>
@@ -123,11 +118,39 @@
           <CheckBox x:Name="TopMostBox" Grid.Row="1" Grid.Column="1" Content="Keep panel above other windows" Margin="0,0,0,10"/>
           <CheckBox x:Name="HideOnLostFocusBox" Grid.Row="2" Grid.Column="1" Content="Hide when focus is lost" Margin="0,0,0,10"/>
           <CheckBox x:Name="StartWithWindowsBox" Grid.Row="3" Grid.Column="1" Content="Start with Windows" Margin="0,0,0,10"/>
-          <CheckBox x:Name="HotkeyBox" Grid.Row="4" Grid.Column="1" Content="Enable hotkey"/>
+          <CheckBox x:Name="ShowOnStartupBox" Grid.Row="4" Grid.Column="1" Content="Show panel when EdgePeek starts" Margin="0,0,0,10"/>
+          <CheckBox x:Name="HotkeyBox" Grid.Row="5" Grid.Column="1" Content="Enable hotkey"/>
         </Grid>
       </Border>
 
-      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Border Grid.Row="4"
+              Background="{StaticResource SurfaceBg}"
+              BorderBrush="{StaticResource BorderSoft}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="14"
+              Margin="0,0,0,14">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="138"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+
+          <TextBlock x:Name="DownloadFolderLabel" Grid.Row="0" Grid.Column="0" Text="Download folder" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,12,12"/>
+          <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,12">
+            <Button x:Name="BrowseDownloadFolderButton" DockPanel.Dock="Right" Width="76" Content="Browse" Click="BrowseDownloadFolderButton_Click"/>
+            <TextBox x:Name="DownloadFolderBox" Margin="0,0,8,0"/>
+          </DockPanel>
+
+          <CheckBox x:Name="AskDownloadFolderBox" Grid.Row="1" Grid.Column="1" Content="Ask where to save each download"/>
+        </Grid>
+      </Border>
+
+      <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
         <Button x:Name="BackButton" Content="Back" Width="88" Margin="0,0,8,0" Click="BackButton_Click"/>
         <Button x:Name="SaveButton"
                 Content="Save"

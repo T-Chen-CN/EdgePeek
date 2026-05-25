@@ -1,8 +1,9 @@
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
-    [string]$Version = "0.1.0",
+    [string]$Version = "0.1.12",
     [switch]$SelfContained,
+    [switch]$FrameworkDependent,
     [switch]$SkipInstaller,
     [string]$CertificatePath,
     [string]$CertificatePassword,
@@ -13,11 +14,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+if ($Version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') {
+    throw "Version must be numeric, for example 0.1.12 or 1.2.3.4."
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $projectPath = Join-Path $repoRoot "EdgePeek\EdgePeek.csproj"
 $artifactRoot = Join-Path $repoRoot "artifacts"
 $publishDir = Join-Path $artifactRoot "publish\EdgePeek-$Version-$Runtime"
 $portableZip = Join-Path $artifactRoot "EdgePeek-$Version-$Runtime-portable.zip"
+$installerPath = Join-Path $artifactRoot "EdgePeekSetup-$Version-$Runtime.exe"
 $installerScript = Join-Path $repoRoot "installer\EdgePeek.iss"
 
 function Find-SignTool {
@@ -120,8 +126,11 @@ if (Test-Path $publishDir) {
 if (Test-Path $portableZip) {
     Remove-Item -LiteralPath $portableZip -Force
 }
+if (Test-Path $installerPath) {
+    Remove-Item -LiteralPath $installerPath -Force
+}
 
-$selfContainedValue = if ($SelfContained) { "true" } else { "false" }
+$selfContainedValue = if ($FrameworkDependent) { "false" } else { "true" }
 $publishArguments = @(
     "publish", $projectPath,
     "-c", $Configuration,
@@ -129,6 +138,7 @@ $publishArguments = @(
     "--self-contained", $selfContainedValue,
     "-o", $publishDir,
     "-p:PublishSingleFile=true",
+    "-p:Version=$Version",
     "-p:AssemblyVersion=$Version",
     "-p:FileVersion=$Version",
     "-p:InformationalVersion=$Version"
@@ -141,6 +151,8 @@ if ($LASTEXITCODE -ne 0) {
     throw "dotnet publish failed."
 }
 
+Get-ChildItem -Path $publishDir -Recurse -Include *.pdb,*.xml -File | Remove-Item -Force
+
 $signTool = Find-SignTool -RequestedPath $SignToolPath
 $exePath = Join-Path $publishDir "EdgePeek.exe"
 Invoke-CodeSign -TargetPath $exePath -ToolPath $signTool
@@ -148,7 +160,6 @@ Invoke-CodeSign -TargetPath $exePath -ToolPath $signTool
 Write-Host "Creating portable zip..."
 Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $portableZip -Force
 
-$installerPath = $null
 if (!$SkipInstaller) {
     $innoCompiler = Find-InnoSetupCompiler -RequestedPath $InnoSetupCompilerPath
     if ($innoCompiler) {
@@ -163,7 +174,6 @@ if (!$SkipInstaller) {
             throw "Inno Setup build failed."
         }
 
-        $installerPath = Join-Path $artifactRoot "EdgePeekSetup-$Version-$Runtime.exe"
         Invoke-CodeSign -TargetPath $installerPath -ToolPath $signTool
     }
     else {
@@ -174,6 +184,6 @@ if (!$SkipInstaller) {
 Write-Host ""
 Write-Host "Release artifacts:"
 Write-Host "  Portable zip: $portableZip"
-if ($installerPath) {
+if (Test-Path $installerPath) {
     Write-Host "  Installer:     $installerPath"
 }

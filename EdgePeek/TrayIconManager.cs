@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using EdgePeek.Localization;
 
@@ -24,7 +25,7 @@ public sealed class TrayIconManager : IDisposable
         _notifyIcon = new NotifyIcon
         {
             Text = "EdgePeek",
-            Icon = SystemIcons.Application,
+            Icon = LoadAppIcon(),
             Visible = true
         };
         RefreshMenu();
@@ -50,6 +51,15 @@ public sealed class TrayIconManager : IDisposable
     public void Dispose()
     {
         _notifyIcon.Visible = false;
+        _notifyIcon.Icon?.Dispose();
         _notifyIcon.Dispose();
+    }
+
+    private static Icon LoadAppIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+        return File.Exists(iconPath)
+            ? new Icon(iconPath)
+            : new Icon(SystemIcons.Application, SystemIcons.Application.Size);
     }
 }
